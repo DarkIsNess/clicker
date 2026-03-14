@@ -3,24 +3,23 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-    <title>Capybara Cloud Engine</title>
+    <title>Capybara Neon MSK</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
-        :root { --gold: #ffcc00; --bg: #0d0d0d; --neon: #00e5ff; }
-        body { font-family: sans-serif; background: var(--bg); color: white; margin: 0; overflow: hidden; }
-        .container { display: flex; flex-direction: column; align-items: center; justify-content: space-between; height: 100vh; padding: 20px; box-sizing: border-box; }
-        #balance { font-size: 4.5em; font-weight: 900; color: var(--gold); }
-        #capy-btn { width: 240px; height: 240px; border-radius: 50%; background: radial-gradient(circle, #3d2b1f, #120c08); border: 4px solid #333; font-size: 100px; display: flex; align-items: center; justify-content: center; transition: 0.1s; outline: none; -webkit-tap-highlight-color: transparent; }
-        #capy-btn:active { transform: scale(0.92); }
-        .nav { width: 100%; background: rgba(255,255,255,0.05); display: flex; padding: 10px; border-radius: 20px; border: 1px solid #333; }
-        .n-btn { flex: 1; text-align: center; font-size: 1.5em; opacity: 0.4; }
-        .n-btn.active { opacity: 1; color: var(--gold); }
-        .modal { position: fixed; inset: 0; background: var(--bg); display: none; flex-direction: column; padding: 25px; z-index: 1000; overflow-y: auto; }
+        :root { --neon: #00f2ff; --bg: #050505; --gold: #ffcc00; }
+        body { font-family: 'Segoe UI', sans-serif; background: var(--bg); color: white; margin: 0; overflow: hidden; }
+        .container { display: flex; flex-direction: column; align-items: center; justify-content: space-between; height: 100vh; padding: 25px; box-sizing: border-box; background: radial-gradient(circle at top, #111, #050505); }
+        #balance { font-size: 4.5em; font-weight: 900; text-shadow: 0 0 20px var(--neon); }
+        #capy-btn { width: 230px; height: 230px; border-radius: 50%; background: #111; border: 4px solid #222; font-size: 100px; display: flex; align-items: center; justify-content: center; transition: 0.1s; outline: none; -webkit-tap-highlight-color: transparent; box-shadow: 0 0 20px rgba(0,242,255,0.1); }
+        #capy-btn:active { transform: scale(0.93); box-shadow: 0 0 40px var(--neon); }
+        .nav { width: 100%; display: flex; background: rgba(255,255,255,0.03); backdrop-filter: blur(15px); border-radius: 20px; padding: 8px; border: 1px solid #333; }
+        .n-btn { flex: 1; text-align: center; font-size: 1.5em; opacity: 0.3; }
+        .n-btn.active { opacity: 1; color: var(--neon); }
+        .modal { position: fixed; inset: 0; background: rgba(0,0,0,0.98); display: none; flex-direction: column; padding: 20px; z-index: 1000; overflow-y: auto; }
         .modal.open { display: flex; }
-        .card { background: #161616; padding: 15px; border-radius: 15px; margin-bottom: 10px; border: 1px solid #222; }
-        .buy-btn { background: var(--gold); border: none; padding: 10px 15px; border-radius: 10px; font-weight: bold; }
-        .floating { position: absolute; pointer-events: none; animation: up 0.8s forwards; font-weight: bold; font-size: 2.5em; color: var(--gold); }
-        @keyframes up { from { opacity: 1; transform: translateY(0); } to { opacity: 0; transform: translateY(-100px); } }
+        .card { background: rgba(255,255,255,0.05); border: 1px solid #333; padding: 15px; border-radius: 15px; margin-bottom: 10px; }
+        .buy-btn { background: var(--neon); color: #000; border: none; padding: 10px 15px; border-radius: 10px; font-weight: bold; }
+        input { width: 100%; padding: 12px; margin: 5px 0; background: #000; border: 1px solid var(--neon); color: #fff; border-radius: 8px; box-sizing: border-box; }
     </style>
 </head>
 <body>
@@ -28,39 +27,42 @@
 <div class="container">
     <div style="text-align: center;">
         <div id="balance">0</div>
-        <div style="color: var(--neon);">+<span id="pps">0</span>/SEC</div>
+        <div style="color: var(--neon); font-weight: bold;">+<span id="pps">0</span>/SEC</div>
     </div>
     <button id="capy-btn">🦫</button>
     <div class="nav">
         <div class="n-btn active" onclick="tab('main', this)">🏠</div>
         <div class="n-btn" onclick="tab('shop', this)">🛒</div>
-        <div class="n-btn" onclick="tab('give', this)">🎁</div>
+        <div class="n-btn" onclick="tab('rank', this)">🏆</div>
         <div class="n-btn" onclick="tab('sets', this)">⚙️</div>
     </div>
 </div>
 
 <div id="shop" class="modal">
-    <div style="display:flex; justify-content:space-between;"><h2>МАГАЗИН</h2><h2 onclick="tab('main')">✕</h2></div>
+    <div style="display:flex; justify-content:space-between; align-items:center;"><h2>МАГАЗИН</h2><h2 onclick="tab('main')">✕</h2></div>
+    <p id="adm-msg" style="color:var(--gold); display:none; font-size:0.8em;">⚠️ РЕЖИМ АДМИНА: Нажми на товар для редактирования!</p>
     <div id="shop-list"></div>
 </div>
 
-<div id="give" class="modal">
-    <div style="display:flex; justify-content:space-between;"><h2>СОБЫТИЯ</h2><h2 onclick="tab('main')">✕</h2></div>
-    <div id="admin-panel" style="display:none;" class="card">
-        <input id="gv-prize" placeholder="Приз (напр. 50000)">
-        <input id="gv-date" type="datetime-local">
-        <button class="buy-btn" style="width:100%" onclick="createGiveaway()">ЗАПУСТИТЬ</button>
-    </div>
-    <div id="give-list"></div>
+<div id="rank" class="modal">
+    <h2>ЛИДЕРЫ</h2>
+    <div id="leader-list" class="card"></div>
+    <button class="buy-btn" style="width:100%" onclick="tab('main')">НАЗАД</button>
 </div>
 
 <div id="sets" class="modal">
     <h2>НАСТРОЙКИ</h2>
     <div class="card">
         <div id="adm-status">Статус: Игрок</div>
-        <button class="buy-btn" id="login-btn" onclick="adminAuth()">АДМИН ВХОД</button>
+        <button class="buy-btn" id="login-btn" style="width:100%; margin-top:10px;" onclick="adminAuth()">ВОЙТИ В АДМИНКУ</button>
+        <div id="adm-panel" style="display:none; margin-top:15px;">
+            <h4>НОВЫЙ РОЗЫГРЫШ (МСК)</h4>
+            <input id="gv-p" placeholder="Сумма приза (число)">
+            <input id="gv-d" type="datetime-local">
+            <button class="buy-btn" style="width:100%" onclick="createGive()">ЗАПУСТИТЬ</button>
+            <button class="buy-btn" style="width:100%; background:red; margin-top:20px;" onclick="location.reload()">ВЫЙТИ</button>
+        </div>
     </div>
-    <button class="buy-btn" style="width:100%; margin-top:20px;" onclick="tab('main')">НАЗАД</button>
 </div>
 
 <script>
@@ -70,30 +72,41 @@ tg.expand();
 
 let data = { bal: 0, click: 1, auto: 0, upCosts: {} };
 let upgrades = [];
-let isAuth = false;
+let isAdm = false;
 
-// Генерация экономики (Хардкор)
+// Базовая экономика
 for(let i=1; i<=30; i++) {
-    const isClick = i <= 15;
-    upgrades.push({ id: i, name: isClick ? `Клик v${i}` : `Шахта v${i-15}`, type: isClick ? 'click' : 'auto', power: i*5, cost: Math.floor(200 * Math.pow(1.6, i)) });
+    const isC = i <= 15;
+    upgrades.push({ id: i, name: isC ? `Кликер v${i}` : `Шахта v${i-15}`, type: isC ? 'click' : 'auto', power: i*5, cost: Math.floor(300 * Math.pow(1.6, i)) });
 }
 
 async function init() {
-    const res = await fetch('/api/config');
-    const config = await res.json();
+    const configRes = await fetch('/api/config');
+    const config = await configRes.json();
     
-    // Синхронизация с сервером
-    const sync = await fetch('/api/sync', {
+    // Топ игроков
+    document.getElementById('leader-list').innerHTML = config.leaders.map((l, i) => `<div style="display:flex; justify-content:space-between; padding:10px; border-bottom:1px solid #222;"><span>#${i+1} ${l.name}</span><b>${Math.floor(l.bal)}</b></div>`).join('') || "Нет данных";
+
+    // Синхронизация монет
+    const syncRes = await fetch('/api/sync', {
         method: 'POST',
         headers: {'Content-Type': 'application/json'},
-        body: JSON.stringify({ userId: tg.initDataUnsafe.user.id, bal: data.bal, upCosts: data.upCosts })
+        body: JSON.stringify({ userId: tg.initDataUnsafe.user.id, name: tg.initDataUnsafe.user.first_name, bal: data.bal, upCosts: data.upCosts })
     });
-    const cloudData = await sync.json();
-    data.bal = cloudData.bal;
-    data.upCosts = cloudData.upCosts;
+    const cloud = await syncRes.json();
+    data.bal = cloud.bal;
+    if(cloud.upCosts) data.upCosts = cloud.upCosts;
 
-    upgrades.forEach(u => { if(config.upgrades[u.id]) { u.name = config.upgrades[u.id].name; u.cost = config.upgrades[u.id].cost; } });
-    renderShop();
+    // Подгрузка цен от админа
+    upgrades.forEach(u => {
+        if(config.upgrades[u.id]) {
+            u.name = config.upgrades[u.id].name;
+            u.cost = config.upgrades[u.id].cost;
+            u.power = config.upgrades[u.id].power || u.power;
+        }
+    });
+
+    render();
     loop();
 }
 
@@ -104,63 +117,84 @@ function loop() {
     setTimeout(loop, 100);
 }
 
-// Каждые 10 секунд отправляем баланс на сервер для сохранения
-setInterval(() => {
-    fetch('/api/sync', {
-        method: 'POST',
-        headers: {'Content-Type': 'application/json'},
-        body: JSON.stringify({ userId: tg.initDataUnsafe.user.id, bal: data.bal, upCosts: data.upCosts })
-    });
-}, 10000);
-
 document.getElementById('capy-btn').addEventListener('touchstart', (e) => {
     e.preventDefault();
     data.bal += data.click;
-    const n = document.createElement('div');
-    n.className = 'floating'; n.style.left = e.touches[0].clientX + 'px'; n.style.top = e.touches[0].clientY + 'px';
-    n.innerText = `+${data.click}`; document.body.appendChild(n);
-    setTimeout(() => n.remove(), 800);
-    tg.HapticFeedback.impactOccurred('medium');
+    tg.HapticFeedback.impactOccurred('light');
 });
 
-function renderShop() {
+function render() {
     document.getElementById('shop-list').innerHTML = upgrades.map(u => {
         const cost = data.upCosts[u.id] || u.cost;
         return `
-            <div class="card" style="display:flex; justify-content:space-between; align-items:center;">
-                <div><b>${u.name}</b><br><small>+${u.power}</small></div>
-                <button class="buy-btn" onclick="buy(${u.id})" oncontextmenu="adminEdit(${u.id}); return false;">${cost}</button>
+            <div class="card" style="display:flex; justify-content:space-between; align-items:center;" onclick="handleItem(${u.id})">
+                <div><b>${u.name}</b><br><small style="color:var(--neon)">+${u.power} силы</small></div>
+                <button class="buy-btn">${cost}</button>
             </div>
         `;
     }).join('');
 }
 
-function buy(id) {
-    const u = upgrades.find(x => x.id === id);
-    let cost = data.upCosts[id] || u.cost;
-    if(data.bal >= cost) {
-        data.bal -= cost;
-        if(u.type === 'click') data.click += u.power; else data.auto += u.power;
-        data.upCosts[id] = Math.floor(cost * 1.6);
-        renderShop();
+function handleItem(id) {
+    if(isAdm) {
+        const u = upgrades.find(x => x.id === id);
+        const nN = prompt("Название:", u.name);
+        const nC = prompt("Базовая цена (число):", u.cost);
+        const nP = prompt("Сила прибавки:", u.power);
+        if(nN && nC && nP) {
+            fetch('/api/admin/update', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({ 
+                    userId: MY_ID, 
+                    password: sessionStorage.getItem('ak'), 
+                    update: { type: 'upgrade', id: id, data: { name: nN, cost: parseInt(nC), power: parseInt(nP) } } 
+                })
+            }).then(() => location.reload());
+        }
+    } else {
+        const u = upgrades.find(x => x.id === id);
+        let currentCost = data.upCosts[id] || u.cost;
+        if(data.bal >= currentCost) {
+            data.bal -= currentCost;
+            if(u.type === 'click') data.click += u.power; else data.auto += u.power;
+            data.upCosts[id] = Math.floor(currentCost * 1.6);
+            render();
+            // Сохраняем на сервер сразу
+            fetch('/api/sync', { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({ userId: tg.initDataUnsafe.user.id, bal: data.bal, upCosts: data.upCosts }) });
+        } else { tg.showAlert("Мало монет!"); }
     }
 }
 
 async function adminAuth() {
-    const pass = prompt("Пароль:");
+    if(tg.initDataUnsafe.user.id != MY_ID) return tg.showAlert("ID не совпадает!");
+    const pass = prompt("Админ-пароль:");
     const res = await fetch('/api/admin/verify', { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({ userId: MY_ID, password: pass }) });
+    
     if(res.ok) {
-        isAuth = true; sessionStorage.setItem('ak', pass);
-        document.getElementById('admin-panel').style.display = 'block';
-        document.getElementById('adm-status').innerText = "Статус: АДМИН";
-        tg.showAlert("ДОСТУП ОТКРЫТ");
-    }
+        isAdm = true;
+        sessionStorage.setItem('ak', pass);
+        document.getElementById('adm-panel').style.display = 'block';
+        document.getElementById('login-btn').style.display = 'none';
+        document.getElementById('adm-status').innerText = "Статус: ГЛАВНЫЙ АДМИН";
+        document.getElementById('adm-status').style.color = "var(--neon)";
+        document.getElementById('adm-msg').style.display = 'block';
+        tg.showAlert("ДОСТУП ОТКРЫТ ✅");
+    } else { tg.showAlert("НЕВЕРНЫЙ ПАРОЛЬ ❌"); }
 }
 
-function createGiveaway() {
-    const prize = document.getElementById('gv-prize').value;
-    const time = document.getElementById('gv-date').value;
-    fetch('/api/admin/update', { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({ userId: MY_ID, password: sessionStorage.getItem('ak'), update: { type: 'giveaway', data: { prize, endTime: time, completed: false } } }) }).then(() => location.reload());
+function createGive() {
+    const prize = document.getElementById('gv-p').value;
+    const time = document.getElementById('gv-d').value;
+    if(!prize || !time) return;
+    fetch('/api/admin/update', { 
+        method: 'POST', 
+        headers: {'Content-Type': 'application/json'}, 
+        body: JSON.stringify({ userId: MY_ID, password: sessionStorage.getItem('ak'), update: { type: 'giveaway', data: { prize: prize, endTime: time, completed: false } } }) 
+    }).then(() => {
+        tg.showAlert("Розыгрыш запланирован по МСК!");
+        location.reload();
+    });
 }
 
 function tab(id, el) {
