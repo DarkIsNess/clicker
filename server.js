@@ -3,7 +3,6 @@ const express = require('express');
 const bodyParser = require('body-parser');
 const path = require('path');
 
-// --- КОНФИГУРАЦИЯ ROUGE ---
 const BOT_TOKEN = '8558430865:AAEs5t-qIIDk3n2fOodR4HyfWW8g-GEVICg'; 
 const app = express();
 const bot = new Telegraf(BOT_TOKEN);
@@ -11,37 +10,34 @@ const bot = new Telegraf(BOT_TOKEN);
 app.use(bodyParser.json());
 app.use(express.static(path.join(__dirname, '.')));
 
-// Команда /start
-bot.start((ctx) => {
-    const webAppUrl = process.env.RAILWAY_STATIC_URL 
-        ? `https://${process.env.RAILWAY_STATIC_URL}` 
-        : 'https://google.com';
+// Временная база данных в памяти сервера
+let globalLeaderboard = [];
 
-    ctx.reply('Система Rouge Online. Клик за кликом, High Command.', 
-        Markup.inlineKeyboard([
-            Markup.button.webApp('ИГРАТЬ', webAppUrl)
-        ])
+bot.start((ctx) => {
+    const webAppUrl = `https://${process.env.RAILWAY_STATIC_URL}`;
+    ctx.reply(`Привет, ${ctx.from.first_name}! Капибары ждут.`, 
+        Markup.inlineKeyboard([Markup.button.webApp('ИГРАТЬ', webAppUrl)])
     );
 });
 
-// Сохранение
-app.post('/save', (req, res) => {
-    console.log(`[LOG] Баланс: ${req.body.balance}`);
-    res.json({ ok: true });
+// Сохранение и получение рейтинга
+app.post('/api/sync', (req, res) => {
+    const { user, balance } = req.body;
+    if (user && user.id) {
+        const index = globalLeaderboard.findIndex(i => i.id === user.id);
+        if (index > -1) {
+            globalLeaderboard[index].balance = Math.max(globalLeaderboard[index].balance, balance);
+        } else {
+            globalLeaderboard.push({ id: user.id, name: user.first_name, balance });
+        }
+        globalLeaderboard.sort((a, b) => b.balance - a.balance);
+        globalLeaderboard = globalLeaderboard.slice(0, 10); // Только ТОП-10
+    }
+    res.json({ leaderboard: globalLeaderboard });
 });
 
-// Главная страница
-app.get('/', (req, res) => {
-    res.sendFile(path.join(__dirname, 'index.html'));
-});
+app.get('/', (req, res) => res.sendFile(path.join(__dirname, 'index.html')));
 
-// Запуск
 const PORT = process.env.PORT || 3000;
 bot.launch();
-app.listen(PORT, () => {
-    console.log(`--- ROUGE SYSTEM ONLINE ON PORT ${PORT} ---`);
-});
-
-// Корректная остановка
-process.once('SIGINT', () => bot.stop('SIGINT'));
-process.once('SIGTERM', () => bot.stop('SIGTERM'));
+app.listen(PORT, () => console.log(`Server Online`));
