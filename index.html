@@ -3,51 +3,27 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-    <title>Capybara Elite Admin</title>
+    <title>Capybara Giveaway Engine</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
         :root { --gold: #ffcc00; --bg: #0d0d0d; --neon: #00e5ff; --danger: #ff4444; }
         body { font-family: sans-serif; background: var(--bg); color: white; margin: 0; overflow: hidden; touch-action: none; }
         .container { display: flex; flex-direction: column; align-items: center; justify-content: space-between; height: 100vh; padding: 20px; box-sizing: border-box; }
-        
-        /* Баланс */
-        #balance { font-size: 4em; font-weight: 900; color: var(--gold); margin-top: 20px; }
-        
-        /* Комбо-бар */
-        .combo-box { width: 80%; text-align: center; }
-        .bar { width: 100%; height: 8px; background: #222; border-radius: 4px; margin-top: 5px; overflow: hidden; }
-        #fill { width: 0%; height: 100%; background: var(--neon); box-shadow: 0 0 10px var(--neon); transition: 0.1s; }
-
-        /* Капибара */
-        #capy-btn { 
-            width: 250px; height: 250px; border-radius: 50%; 
-            background: radial-gradient(circle, #3d2b1f, #1a110a);
-            border: 4px solid #333; font-size: 100px;
-            display: flex; align-items: center; justify-content: center;
-            transition: transform 0.05s; outline: none; -webkit-tap-highlight-color: transparent;
-        }
-        #capy-btn::after { content: '🦫'; }
-        #capy-btn:active { transform: scale(0.92); }
-
-        /* Навигация */
-        .nav { width: 100%; background: #1a1a1a; display: flex; padding: 15px; border-radius: 20px; border: 1px solid #333; }
-        .n-btn { flex: 1; text-align: center; font-size: 1.5em; opacity: 0.5; }
+        #balance { font-size: 4em; font-weight: 900; color: var(--gold); }
+        #capy-btn { width: 220px; height: 220px; border-radius: 50%; background: radial-gradient(circle, #3d2b1f, #1a110a); border: 4px solid #333; font-size: 90px; display: flex; align-items: center; justify-content: center; transition: 0.05s; outline: none; -webkit-tap-highlight-color: transparent; }
+        #capy-btn:active { transform: scale(0.95); }
+        .nav { width: 100%; background: #1a1a1a; display: flex; padding: 15px; border-radius: 20px; }
+        .n-btn { flex: 1; text-align: center; font-size: 1.4em; opacity: 0.5; }
         .n-btn.active { opacity: 1; color: var(--gold); }
-
-        /* Окна */
-        .modal { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.95); display: none; flex-direction: column; padding: 20px; box-sizing: border-box; z-index: 100; }
+        .modal { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.98); display: none; flex-direction: column; padding: 20px; box-sizing: border-box; z-index: 100; overflow-y: auto; }
         .modal.open { display: flex; }
-        .scroll { overflow-y: auto; flex: 1; margin-top: 15px; }
-        
-        /* Карточки магазина */
-        .card { background: #151515; padding: 15px; border-radius: 15px; margin-bottom: 10px; display: flex; justify-content: space-between; align-items: center; border: 1px solid #222; }
-        .card h4 { margin: 0; color: var(--gold); }
-        .card p { margin: 5px 0 0; font-size: 0.8em; opacity: 0.6; }
-        .buy-btn { background: var(--gold); border: none; padding: 10px 15px; border-radius: 10px; font-weight: bold; }
-
-        /* Летающие цифры */
-        .num { position: absolute; pointer-events: none; animation: moveUp 0.7s forwards; font-weight: bold; font-size: 2em; }
-        @keyframes moveUp { from { opacity: 1; transform: translateY(0); } to { opacity: 0; transform: translateY(-120px); } }
+        .card { background: #151515; padding: 15px; border-radius: 15px; margin-bottom: 10px; border: 1px solid #222; }
+        input, textarea { width: 100%; padding: 12px; margin: 10px 0; background: #222; border: 1px solid #444; color: white; border-radius: 8px; box-sizing: border-box; }
+        .btn { width: 100%; padding: 15px; border: none; border-radius: 10px; font-weight: bold; cursor: pointer; }
+        .btn-gold { background: var(--gold); color: black; }
+        .btn-admin { background: #333; color: var(--neon); margin-top: 10px; }
+        .floating { position: absolute; pointer-events: none; animation: up 0.7s forwards; font-weight: bold; font-size: 2em; }
+        @keyframes up { from { opacity: 1; transform: translateY(0); } to { opacity: 0; transform: translateY(-100px); } }
     </style>
 </head>
 <body>
@@ -55,112 +31,118 @@
 <div class="container">
     <div style="text-align: center;">
         <div id="balance">0</div>
-        <div class="combo-box">
-            <small id="combo-txt">X1</small>
-            <div class="bar"><div id="fill"></div></div>
-        </div>
+        <div id="pps" style="color: var(--neon); font-size: 0.9em;">+0/сек</div>
     </div>
 
-    <button id="capy-btn"></button>
+    <button id="capy-btn">🦫</button>
 
     <div class="nav">
         <div class="n-btn active" onclick="tab('main', this)">🏠</div>
         <div class="n-btn" onclick="tab('shop', this)">🛒</div>
+        <div class="n-btn" onclick="tab('give', this)">🎁</div>
         <div class="n-btn" onclick="tab('sets', this)">⚙️</div>
     </div>
 </div>
 
 <div id="shop" class="modal">
     <div style="display:flex; justify-content:space-between;"><h2>МАГАЗИН</h2><h2 onclick="tab('main')">✖</h2></div>
-    <div class="scroll" id="shop-list"></div>
+    <div id="shop-list"></div>
+</div>
+
+<div id="give" class="modal">
+    <div style="display:flex; justify-content:space-between;"><h2>РОЗЫГРЫШИ</h2><h2 onclick="tab('main')">✖</h2></div>
+    <div id="admin-give-panel" style="display:none;">
+        <div class="card" style="border-color: var(--neon);">
+            <h4>➕ Создать розыгрыш</h4>
+            <input id="gv-prize" placeholder="Описание приза (напр. 50,000 монет)">
+            <input id="gv-date" type="datetime-local">
+            <button class="btn btn-gold" onclick="createGiveaway()">ЗАПЛАНИРОВАТЬ</button>
+        </div>
+    </div>
+    <div id="give-list"></div>
 </div>
 
 <div id="sets" class="modal">
     <h2>НАСТРОЙКИ</h2>
-    <button onclick="localStorage.clear(); location.reload();" style="width:100%; padding:15px; background:red; color:white; border:none; border-radius:10px;">СБРОСИТЬ ВСЁ</button>
-    <button onclick="tab('main')" style="width:100%; margin-top:10px; padding:15px;">НАЗАД</button>
+    <button class="btn" style="background:red; color:white;" onclick="localStorage.clear(); location.reload();">СБРОСИТЬ ПРОГРЕСС</button>
+    <button class="btn btn-admin" id="admin-login-btn" onclick="adminLogin()">ВОЙТИ КАК АДМИН</button>
+    <button class="btn" style="margin-top:10px" onclick="tab('main')">НАЗАД</button>
 </div>
 
 <script>
 const tg = window.Telegram.WebApp;
+const ADMIN_ID = 6675992053;
+const ADMIN_PASS = "GHG227YYK%%7";
 tg.expand();
 
-const ADMIN_ID = 6675992053;
 let data = { bal: 0, click: 1, auto: 0, combo: 1, cFill: 0, upCosts: {} };
 let upgrades = [];
+let isAdmin = false;
 
-// Генерируем 30 товаров
 for(let i=1; i<=30; i++) {
-    upgrades.push({
-        id: i,
-        name: i<=15 ? `Клик-буст ${i}` : `Ферма ${i-15}`,
-        type: i<=15 ? 'click' : 'auto',
-        power: i * 2,
-        cost: i * 20
-    });
+    upgrades.push({ id: i, name: i<=15 ? `Буст клика ${i}` : `Ферма ${i-15}`, type: i<=15 ? 'click' : 'auto', power: i*2, cost: i*25 });
 }
 
 async function init() {
-    // 1. Грузим глобальные цены с сервера
     try {
         const res = await fetch('/api/config');
         const config = await res.json();
+        
+        // Применяем цены
         upgrades.forEach(u => {
-            if(config.upgrades[u.id]) {
-                u.name = config.upgrades[u.id].name;
-                u.cost = config.upgrades[u.id].cost;
-            }
+            if(config.upgrades[u.id]) { u.name = config.upgrades[u.id].name; u.cost = config.upgrades[u.id].cost; }
         });
+
+        // Проверка админа
+        if(tg.initDataUnsafe.user?.id === ADMIN_ID) {
+            document.getElementById('admin-give-panel').style.display = 'block';
+            isAdmin = true;
+        }
+
+        // Список розыгрышей
+        const gList = document.getElementById('give-list');
+        gList.innerHTML = config.giveaways.map(g => `
+            <div class="card">
+                <b>🎁 Приз: ${g.prize}</b><br>
+                <small>Завершится: ${new Date(g.endTime).toLocaleString()}</small>
+            </div>
+        `).join('');
+
     } catch(e) {}
 
-    // 2. Грузим прогресс игрока
-    const saved = localStorage.getItem('capy_save');
+    const saved = localStorage.getItem('capy_v5');
     if(saved) data = JSON.parse(saved);
-
     renderShop();
     loop();
 }
 
 function loop() {
     if(data.cFill > 0) data.cFill -= 0.3;
-    else if(data.combo > 1) { data.combo--; data.cFill = 90; }
     if(data.auto > 0) data.bal += (data.auto / 10);
-    
     document.getElementById('balance').innerText = Math.floor(data.bal);
-    document.getElementById('combo-txt').innerText = `X${data.combo}`;
-    document.getElementById('fill').style.width = data.cFill + '%';
-    
-    localStorage.setItem('capy_save', JSON.stringify(data));
+    document.getElementById('pps').innerText = `+${data.auto}/сек`;
+    localStorage.setItem('capy_v5', JSON.stringify(data));
     setTimeout(loop, 100);
 }
 
-const btn = document.getElementById('capy-btn');
-btn.addEventListener('touchstart', (e) => {
+document.getElementById('capy-btn').addEventListener('touchstart', (e) => {
     e.preventDefault();
-    const p = data.click * data.combo;
-    data.bal += p;
-    data.cFill = Math.min(data.cFill + 10, 100);
-    if(data.cFill >= 100 && data.combo < 50) { data.combo++; data.cFill = 10; }
-    
-    const touch = e.touches[0];
+    data.bal += data.click;
     const n = document.createElement('div');
-    n.className = 'num'; n.style.left = touch.clientX + 'px'; n.style.top = touch.clientY + 'px';
-    n.innerText = `+${p}`; document.body.appendChild(n);
+    n.className = 'floating'; n.style.left = e.touches[0].clientX + 'px'; n.style.top = e.touches[0].clientY + 'px';
+    n.innerText = `+${data.click}`; document.body.appendChild(n);
     setTimeout(() => n.remove(), 700);
-    if(tg.HapticFeedback) tg.HapticFeedback.impactOccurred('medium');
+    tg.HapticFeedback.impactOccurred('light');
 });
 
 function renderShop() {
     document.getElementById('shop-list').innerHTML = upgrades.map(u => {
         const cost = data.upCosts[u.id] || u.cost;
         return `
-            <div class="card">
-                <div><h4>${u.name}</h4><p>+${u.power} бонус</p></div>
-                <button class="buy-btn" 
-                    onclick="buy(${u.id})" 
-                    oncontextmenu="adminEdit(${u.id}); return false;">
-                    ${cost} 💰
-                </button>
+            <div class="card" style="display:flex; justify-content:space-between; align-items:center;">
+                <div><b>${u.name}</b><br><small>+${u.power} бонус</small></div>
+                <button class="btn btn-gold" style="width:auto; padding:8px 15px;" 
+                    onclick="buy(${u.id})" oncontextmenu="adminEdit(${u.id}); return false;">${cost}</button>
             </div>
         `;
     }).join('');
@@ -174,27 +156,31 @@ function buy(id) {
         if(u.type === 'click') data.click += u.power; else data.auto += u.power;
         data.upCosts[id] = Math.floor(cost * 1.5);
         renderShop();
-    } else { tg.showAlert("Мало денег!"); }
+    } else { tg.showAlert("Мало монет!"); }
 }
 
 function adminEdit(id) {
-    if(tg.initDataUnsafe.user.id !== ADMIN_ID) return;
-    const pass = prompt("Пароль:");
-    if(pass !== "GHG227YYK%%7") return;
-
+    if(!isAdmin) return;
     const nName = prompt("Новое имя:");
     const nCost = prompt("Глобальная цена:");
-    
     if(nName && nCost) {
-        fetch('/api/admin/update', {
-            method: 'POST',
-            headers: {'Content-Type': 'application/json'},
-            body: JSON.stringify({
-                userId: ADMIN_ID, password: pass,
-                update: { type: 'upgrade', id: id, name: nName, cost: nCost }
-            })
-        }).then(() => location.reload());
+        adminRequest({ type: 'upgrade', id: id, name: nName, cost: nCost });
     }
+}
+
+function createGiveaway() {
+    const prize = document.getElementById('gv-prize').value;
+    const time = document.getElementById('gv-date').value;
+    if(!prize || !time) return tg.showAlert("Заполни все поля!");
+    adminRequest({ type: 'giveaway', data: { prize, endTime: time, completed: false } });
+}
+
+function adminRequest(update) {
+    fetch('/api/admin/update', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({ userId: ADMIN_ID, password: ADMIN_PASS, update })
+    }).then(() => location.reload());
 }
 
 function tab(id, el) {
