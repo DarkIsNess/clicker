@@ -3,23 +3,54 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-    <title>Capybara Neon MSK</title>
+    <title>Capybara Neon Ultra</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
-        :root { --neon: #00f2ff; --bg: #050505; --gold: #ffcc00; }
-        body { font-family: 'Segoe UI', sans-serif; background: var(--bg); color: white; margin: 0; overflow: hidden; }
-        .container { display: flex; flex-direction: column; align-items: center; justify-content: space-between; height: 100vh; padding: 25px; box-sizing: border-box; background: radial-gradient(circle at top, #111, #050505); }
-        #balance { font-size: 4.5em; font-weight: 900; text-shadow: 0 0 20px var(--neon); }
-        #capy-btn { width: 230px; height: 230px; border-radius: 50%; background: #111; border: 4px solid #222; font-size: 100px; display: flex; align-items: center; justify-content: center; transition: 0.1s; outline: none; -webkit-tap-highlight-color: transparent; box-shadow: 0 0 20px rgba(0,242,255,0.1); }
-        #capy-btn:active { transform: scale(0.93); box-shadow: 0 0 40px var(--neon); }
-        .nav { width: 100%; display: flex; background: rgba(255,255,255,0.03); backdrop-filter: blur(15px); border-radius: 20px; padding: 8px; border: 1px solid #333; }
-        .n-btn { flex: 1; text-align: center; font-size: 1.5em; opacity: 0.3; }
-        .n-btn.active { opacity: 1; color: var(--neon); }
-        .modal { position: fixed; inset: 0; background: rgba(0,0,0,0.98); display: none; flex-direction: column; padding: 20px; z-index: 1000; overflow-y: auto; }
+        :root { --neon: #00f2ff; --bg: #050505; --gold: #ffcc00; --pink: #ff007a; }
+        body { font-family: 'Inter', sans-serif; background: var(--bg); color: white; margin: 0; overflow: hidden; touch-action: none; }
+        
+        .container { display: flex; flex-direction: column; align-items: center; justify-content: space-between; height: 100vh; padding: 20px; box-sizing: border-box; background: radial-gradient(circle at center, #111 0%, #050505 100%); }
+        
+        #balance { font-size: 5em; font-weight: 900; color: #fff; text-shadow: 0 0 20px var(--neon); margin-top: 20px; transition: 0.2s; }
+        .stats { color: var(--neon); font-size: 0.9em; text-transform: uppercase; letter-spacing: 2px; margin-bottom: 10px; }
+
+        /* Капибара и Шкала */
+        .click-area { position: relative; display: flex; flex-direction: column; align-items: center; }
+        #capy-btn { 
+            width: 220px; height: 220px; border-radius: 50%; border: 4px solid #1a1a1a;
+            background: url('https://img.icons8.com/emoji/256/capybara-emoji.png') center/75% no-repeat, #111;
+            box-shadow: 0 0 30px rgba(0,242,255,0.1);
+            transition: transform 0.05s cubic-bezier(0, 0, 0.2, 1); outline: none; -webkit-tap-highlight-color: transparent;
+        }
+        #capy-btn:active { transform: scale(0.92); }
+
+        .boost-bar-container { width: 200px; height: 8px; background: #222; border-radius: 10px; margin-top: 20px; overflow: hidden; border: 1px solid #333; }
+        #boost-fill { width: 100%; height: 100%; background: linear-gradient(90deg, var(--neon), var(--pink)); transition: 0.3s; box-shadow: 0 0 10px var(--neon); }
+
+        /* Навигация */
+        .nav { width: 100%; max-width: 400px; display: flex; background: rgba(255,255,255,0.03); backdrop-filter: blur(15px); border-radius: 25px; border: 1px solid rgba(255,255,255,0.1); padding: 8px; margin-bottom: 10px; }
+        .n-btn { flex: 1; text-align: center; font-size: 1.5em; opacity: 0.3; transition: 0.3s; padding: 10px; cursor: pointer; }
+        .n-btn.active { opacity: 1; color: var(--neon); transform: translateY(-5px); }
+
+        /* Окна */
+        .modal { position: fixed; inset: 0; background: rgba(0,0,0,0.96); backdrop-filter: blur(25px); display: none; flex-direction: column; padding: 30px 20px; z-index: 1000; animation: fadeIn 0.3s ease; }
         .modal.open { display: flex; }
-        .card { background: rgba(255,255,255,0.05); border: 1px solid #333; padding: 15px; border-radius: 15px; margin-bottom: 10px; }
-        .buy-btn { background: var(--neon); color: #000; border: none; padding: 10px 15px; border-radius: 10px; font-weight: bold; }
-        input { width: 100%; padding: 12px; margin: 5px 0; background: #000; border: 1px solid var(--neon); color: #fff; border-radius: 8px; box-sizing: border-box; }
+        @keyframes fadeIn { from { opacity: 0; transform: scale(0.95); } to { opacity: 1; transform: scale(1); } }
+
+        .header-ui { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; border-bottom: 1px solid #222; padding-bottom: 10px; }
+        .close-x { font-size: 1.5em; color: #555; cursor: pointer; }
+
+        .card { background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); padding: 15px; border-radius: 20px; margin-bottom: 12px; transition: 0.2s; }
+        .card:active { transform: scale(0.98); background: rgba(255,255,255,0.08); }
+
+        .buy-btn { background: var(--neon); color: #000; border: none; padding: 10px 18px; border-radius: 12px; font-weight: 800; text-transform: uppercase; font-size: 0.8em; }
+
+        /* Всплывающие цифры */
+        .floating { position: absolute; pointer-events: none; animation: floatUp 0.7s ease-out forwards; font-weight: 900; font-size: 2.2em; color: #fff; text-shadow: 0 0 15px var(--neon); z-index: 2000; }
+        @keyframes floatUp { 0% { opacity: 1; transform: translateY(0); } 100% { opacity: 0; transform: translateY(-150px) scale(1.5); } }
+
+        input { width: 100%; padding: 14px; background: #111; border: 1px solid #333; color: #fff; border-radius: 12px; margin-bottom: 10px; font-size: 1em; outline: none; }
+        input:focus { border-color: var(--neon); box-shadow: 0 0 10px rgba(0,242,255,0.2); }
     </style>
 </head>
 <body>
@@ -27,9 +58,17 @@
 <div class="container">
     <div style="text-align: center;">
         <div id="balance">0</div>
-        <div style="color: var(--neon); font-weight: bold;">+<span id="pps">0</span>/SEC</div>
+        <div class="stats">AUTO: +<span id="pps">0</span>/SEC</div>
     </div>
-    <button id="capy-btn">🦫</button>
+
+    <div class="click-area">
+        <button id="capy-btn"></button>
+        <div class="boost-bar-container">
+            <div id="boost-fill"></div>
+        </div>
+        <div style="font-size: 0.7em; color: #555; margin-top: 5px; text-transform: uppercase;">Energy</div>
+    </div>
+
     <div class="nav">
         <div class="n-btn active" onclick="tab('main', this)">🏠</div>
         <div class="n-btn" onclick="tab('shop', this)">🛒</div>
@@ -39,28 +78,27 @@
 </div>
 
 <div id="shop" class="modal">
-    <div style="display:flex; justify-content:space-between; align-items:center;"><h2>МАГАЗИН</h2><h2 onclick="tab('main')">✕</h2></div>
-    <p id="adm-msg" style="color:var(--gold); display:none; font-size:0.8em;">⚠️ РЕЖИМ АДМИНА: Нажми на товар для редактирования!</p>
-    <div id="shop-list"></div>
+    <div class="header-ui"><h2>МАГАЗИН</h2><div class="close-x" onclick="tab('main')">✕</div></div>
+    <div id="shop-list" style="overflow-y: auto; flex: 1;"></div>
 </div>
 
 <div id="rank" class="modal">
-    <h2>ЛИДЕРЫ</h2>
+    <div class="header-ui"><h2>ЛИДЕРЫ</h2><div class="close-x" onclick="tab('main')">✕</div></div>
     <div id="leader-list" class="card"></div>
-    <button class="buy-btn" style="width:100%" onclick="tab('main')">НАЗАД</button>
 </div>
 
 <div id="sets" class="modal">
-    <h2>НАСТРОЙКИ</h2>
+    <div class="header-ui"><h2>НАСТРОЙКИ</h2><div class="close-x" onclick="tab('main')">✕</div></div>
     <div class="card">
-        <div id="adm-status">Статус: Игрок</div>
-        <button class="buy-btn" id="login-btn" style="width:100%; margin-top:10px;" onclick="adminAuth()">ВОЙТИ В АДМИНКУ</button>
-        <div id="adm-panel" style="display:none; margin-top:15px;">
-            <h4>НОВЫЙ РОЗЫГРЫШ (МСК)</h4>
-            <input id="gv-p" placeholder="Сумма приза (число)">
+        <div id="adm-status" style="margin-bottom: 10px;">Role: Игрок</div>
+        <button class="buy-btn" id="login-btn" style="width:100%" onclick="adminAuth()">АДМИН ВХОД</button>
+        
+        <div id="adm-panel" style="display:none; margin-top: 20px; border-top: 1px solid #333; padding-top: 20px;">
+            <h4 style="color:var(--neon)">Управление Розыгрышем</h4>
+            <input id="gv-p" placeholder="Сумма приза">
             <input id="gv-d" type="datetime-local">
             <button class="buy-btn" style="width:100%" onclick="createGive()">ЗАПУСТИТЬ</button>
-            <button class="buy-btn" style="width:100%; background:red; margin-top:20px;" onclick="location.reload()">ВЫЙТИ</button>
+            <button class="buy-btn" style="width:100%; background:#222; color:#fff; margin-top:10px" onclick="location.reload()">ВЫЙТИ ИЗ АДМИНКИ</button>
         </div>
     </div>
 </div>
@@ -70,57 +108,74 @@ const tg = window.Telegram.WebApp;
 const MY_ID = 6675992053;
 tg.expand();
 
-let data = { bal: 0, click: 1, auto: 0, upCosts: {} };
+let data = { bal: 0, click: 1, auto: 0, upCosts: {}, energy: 100 };
 let upgrades = [];
 let isAdm = false;
 
-// Базовая экономика
+// Генерация экономики
 for(let i=1; i<=30; i++) {
     const isC = i <= 15;
-    upgrades.push({ id: i, name: isC ? `Кликер v${i}` : `Шахта v${i-15}`, type: isC ? 'click' : 'auto', power: i*5, cost: Math.floor(300 * Math.pow(1.6, i)) });
+    upgrades.push({ id: i, name: isC ? `Кликер v${i}` : `Шахта v${i-15}`, type: isC ? 'click' : 'auto', power: i*5, cost: Math.floor(400 * Math.pow(1.6, i)) });
 }
 
 async function init() {
-    const configRes = await fetch('/api/config');
-    const config = await configRes.json();
+    const res = await fetch('/api/config');
+    const config = await res.json();
     
-    // Топ игроков
-    document.getElementById('leader-list').innerHTML = config.leaders.map((l, i) => `<div style="display:flex; justify-content:space-between; padding:10px; border-bottom:1px solid #222;"><span>#${i+1} ${l.name}</span><b>${Math.floor(l.bal)}</b></div>`).join('') || "Нет данных";
+    document.getElementById('leader-list').innerHTML = config.leaders.map((l, i) => `
+        <div style="display:flex; justify-content:space-between; padding:12px; border-bottom:1px solid #222;">
+            <span>#${i+1} ${l.name}</span><b>${Math.floor(l.bal)}</b>
+        </div>
+    `).join('');
 
-    // Синхронизация монет
-    const syncRes = await fetch('/api/sync', {
+    const sync = await fetch('/api/sync', {
         method: 'POST',
         headers: {'Content-Type': 'application/json'},
-        body: JSON.stringify({ userId: tg.initDataUnsafe.user.id, name: tg.initDataUnsafe.user.first_name, bal: data.bal, upCosts: data.upCosts })
+        body: JSON.stringify({ userId: tg.initDataUnsafe.user.id, name: tg.initDataUnsafe.user.first_name, bal: data.bal })
     });
-    const cloud = await syncRes.json();
+    const cloud = await sync.json();
     data.bal = cloud.bal;
     if(cloud.upCosts) data.upCosts = cloud.upCosts;
 
-    // Подгрузка цен от админа
-    upgrades.forEach(u => {
-        if(config.upgrades[u.id]) {
-            u.name = config.upgrades[u.id].name;
-            u.cost = config.upgrades[u.id].cost;
-            u.power = config.upgrades[u.id].power || u.power;
-        }
-    });
-
+    upgrades.forEach(u => { if(config.upgrades[u.id]) { Object.assign(u, config.upgrades[u.id]); } });
     render();
     loop();
 }
 
 function loop() {
+    // Авто-доход
     if(data.auto > 0) data.bal += (data.auto / 10);
+    // Реген энергии
+    if(data.energy < 100) data.energy += 0.2;
+    
     document.getElementById('balance').innerText = Math.floor(data.bal);
     document.getElementById('pps').innerText = data.auto;
+    document.getElementById('boost-fill').style.width = data.energy + '%';
+    
     setTimeout(loop, 100);
 }
 
+// КЛИК С АНИМАЦИЕЙ
 document.getElementById('capy-btn').addEventListener('touchstart', (e) => {
     e.preventDefault();
+    if(data.energy < 5) {
+        tg.HapticFeedback.notificationOccurred('error');
+        return;
+    }
+
     data.bal += data.click;
-    tg.HapticFeedback.impactOccurred('light');
+    data.energy -= 2;
+    
+    // Всплывающая цифра
+    const n = document.createElement('div');
+    n.className = 'floating';
+    n.style.left = e.touches[0].clientX + 'px';
+    n.style.top = e.touches[0].clientY + 'px';
+    n.innerText = `+${data.click}`;
+    document.body.appendChild(n);
+    setTimeout(() => n.remove(), 700);
+    
+    tg.HapticFeedback.impactOccurred('medium');
 });
 
 function render() {
@@ -128,7 +183,7 @@ function render() {
         const cost = data.upCosts[u.id] || u.cost;
         return `
             <div class="card" style="display:flex; justify-content:space-between; align-items:center;" onclick="handleItem(${u.id})">
-                <div><b>${u.name}</b><br><small style="color:var(--neon)">+${u.power} силы</small></div>
+                <div><b>${u.name}</b><br><small style="color:var(--neon)">+${u.power} Power</small></div>
                 <button class="buy-btn">${cost}</button>
             </div>
         `;
@@ -136,65 +191,51 @@ function render() {
 }
 
 function handleItem(id) {
+    const u = upgrades.find(x => x.id === id);
     if(isAdm) {
-        const u = upgrades.find(x => x.id === id);
         const nN = prompt("Название:", u.name);
-        const nC = prompt("Базовая цена (число):", u.cost);
-        const nP = prompt("Сила прибавки:", u.power);
-        if(nN && nC && nP) {
+        const nC = prompt("Цена:", u.cost);
+        const nP = prompt("Сила:", u.power);
+        if(nN && nC) {
             fetch('/api/admin/update', {
                 method: 'POST',
                 headers: {'Content-Type': 'application/json'},
-                body: JSON.stringify({ 
-                    userId: MY_ID, 
-                    password: sessionStorage.getItem('ak'), 
-                    update: { type: 'upgrade', id: id, data: { name: nN, cost: parseInt(nC), power: parseInt(nP) } } 
-                })
+                body: JSON.stringify({ userId: MY_ID, password: sessionStorage.getItem('ak'), update: { type: 'upgrade', id: id, data: { name: nN, cost: parseInt(nC), power: parseInt(nP) } } })
             }).then(() => location.reload());
         }
     } else {
-        const u = upgrades.find(x => x.id === id);
         let currentCost = data.upCosts[id] || u.cost;
         if(data.bal >= currentCost) {
             data.bal -= currentCost;
             if(u.type === 'click') data.click += u.power; else data.auto += u.power;
             data.upCosts[id] = Math.floor(currentCost * 1.6);
             render();
-            // Сохраняем на сервер сразу
             fetch('/api/sync', { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({ userId: tg.initDataUnsafe.user.id, bal: data.bal, upCosts: data.upCosts }) });
-        } else { tg.showAlert("Мало монет!"); }
+        }
     }
 }
 
 async function adminAuth() {
-    if(tg.initDataUnsafe.user.id != MY_ID) return tg.showAlert("ID не совпадает!");
-    const pass = prompt("Админ-пароль:");
+    if(tg.initDataUnsafe.user.id != MY_ID) return;
+    const pass = prompt("Password:");
     const res = await fetch('/api/admin/verify', { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({ userId: MY_ID, password: pass }) });
-    
     if(res.ok) {
-        isAdm = true;
-        sessionStorage.setItem('ak', pass);
+        isAdm = true; sessionStorage.setItem('ak', pass);
         document.getElementById('adm-panel').style.display = 'block';
         document.getElementById('login-btn').style.display = 'none';
-        document.getElementById('adm-status').innerText = "Статус: ГЛАВНЫЙ АДМИН";
+        document.getElementById('adm-status').innerText = "Role: MASTER ADMIN";
         document.getElementById('adm-status').style.color = "var(--neon)";
-        document.getElementById('adm-msg').style.display = 'block';
-        tg.showAlert("ДОСТУП ОТКРЫТ ✅");
-    } else { tg.showAlert("НЕВЕРНЫЙ ПАРОЛЬ ❌"); }
+    }
 }
 
 function createGive() {
     const prize = document.getElementById('gv-p').value;
     const time = document.getElementById('gv-d').value;
-    if(!prize || !time) return;
     fetch('/api/admin/update', { 
         method: 'POST', 
         headers: {'Content-Type': 'application/json'}, 
-        body: JSON.stringify({ userId: MY_ID, password: sessionStorage.getItem('ak'), update: { type: 'giveaway', data: { prize: prize, endTime: time, completed: false } } }) 
-    }).then(() => {
-        tg.showAlert("Розыгрыш запланирован по МСК!");
-        location.reload();
-    });
+        body: JSON.stringify({ userId: MY_ID, password: sessionStorage.getItem('ak'), update: { type: 'giveaway', data: { prize, endTime: time, completed: false } } }) 
+    }).then(() => location.reload());
 }
 
 function tab(id, el) {
