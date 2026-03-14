@@ -3,48 +3,73 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-    <title>Capybara Elite</title>
+    <title>Capybara Neon Evolution</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
-        :root { --neon: #00f2ff; --bg: #050505; --pink: #ff007a; }
-        body { font-family: sans-serif; background: var(--bg); color: white; margin: 0; overflow: hidden; touch-action: none; }
-        .container { display: flex; flex-direction: column; align-items: center; justify-content: space-between; height: 100vh; padding: 20px; box-sizing: border-box; }
+        :root { --neon: #00f2ff; --bg: #050505; --pink: #ff007a; --gold: #ffcc00; }
+        body { font-family: 'Inter', sans-serif; background: var(--bg); color: white; margin: 0; overflow: hidden; touch-action: none; }
+        .container { display: flex; flex-direction: column; align-items: center; justify-content: space-between; height: 100vh; padding: 25px; box-sizing: border-box; background: radial-gradient(circle at top, #111, #050505); }
         
-        #balance { font-size: 3.5em; font-weight: 900; text-shadow: 0 0 15px var(--neon); }
-        
-        /* Кнопка только с Эмодзи */
+        /* ГЛАВНЫЙ НЕОНОВЫЙ ТЕКСТ С ПЕРЕЛИВОМ */
+        #balance { font-size: 5em; font-weight: 900; animation: neonGradient 3s linear infinite; margin-top: 10px; }
+        @keyframes neonGradient { 0% { color: #fff; text-shadow: 0 0 10px var(--neon), 0 0 20px var(--neon); } 25% { color: #fff; text-shadow: 0 0 15px var(--pink), 0 0 30px var(--pink); } 50% { color: #fff; text-shadow: 0 0 20px var(--gold), 0 0 40px var(--gold); } 75% { color: #fff; text-shadow: 0 0 15px var(--neon), 0 0 30px var(--neon); } 100% { color: #fff; text-shadow: 0 0 10px var(--neon), 0 0 20px var(--neon); } }
+
+        .stats { color: #555; font-size: 0.9em; text-transform: uppercase; letter-spacing: 2px; }
+
+        /* Капибара и Шкала */
+        .click-area { position: relative; display: flex; flex-direction: column; align-items: center; }
         #capy-btn { 
-            width: 200px; height: 200px; border-radius: 50%; border: 4px solid #333;
-            background: #111; font-size: 100px; display: flex; align-items: center; justify-content: center;
-            box-shadow: 0 0 20px rgba(0,242,255,0.1); transition: 0.1s; outline: none;
+            width: 230px; height: 230px; border-radius: 50%; border: 4px solid #222;
+            background: #111; font-size: 110px; display: flex; align-items: center; justify-content: center;
+            box-shadow: 0 0 30px rgba(0,242,255,0.1);
+            transition: 0.1s; outline: none; -webkit-tap-highlight-color: transparent;
         }
-        #capy-btn:active { transform: scale(0.95); }
+        #capy-btn:active { transform: scale(0.93); }
+        .turbo-active { box-shadow: 0 0 50px var(--pink) !important; filter: hue-rotate(280deg); }
 
-        .energy-bar { width: 200px; height: 10px; background: #222; border-radius: 10px; margin-top: 15px; overflow: hidden; }
-        #energy-fill { width: 100%; height: 100%; background: var(--neon); transition: 0.2s; }
+        .boost-bar-container { width: 220px; height: 10px; background: #222; border-radius: 10px; margin-top: 20px; position: relative; border: 1px solid #333; overflow: hidden; }
+        #boost-fill { width: 100%; height: 100%; background: linear-gradient(90deg, var(--neon), var(--pink)); transition: 0.3s; }
 
-        .nav { width: 100%; max-width: 400px; display: flex; background: #111; border-radius: 20px; padding: 5px; }
-        .n-btn { flex: 1; text-align: center; font-size: 1.5em; opacity: 0.4; padding: 10px; }
-        .n-btn.active { opacity: 1; color: var(--neon); }
+        /* Навигация */
+        .nav { width: 100%; display: flex; background: rgba(255,255,255,0.03); backdrop-filter: blur(15px); border-radius: 20px; padding: 10px; border: 1px solid #333; }
+        .n-btn { flex: 1; text-align: center; font-size: 1.6em; opacity: 0.3; transition: 0.3s; }
+        .n-btn.active { opacity: 1; color: var(--neon); transform: scale(1.1); text-shadow: 0 0 10px var(--neon); }
 
-        .modal { position: fixed; inset: 0; background: #000; display: none; flex-direction: column; padding: 20px; z-index: 1000; }
-        .modal.open { display: flex; }
-        .card { background: #111; padding: 15px; border-radius: 15px; margin-bottom: 10px; border: 1px solid #222; }
-        input { width: 100%; padding: 12px; margin: 10px 0; background: #222; border: 1px solid var(--neon); color: #fff; border-radius: 8px; box-sizing: border-box; }
+        /* Окна */
+        .modal { position: fixed; inset: 0; background: rgba(0,0,0,0.98); backdrop-filter: blur(25px); display: none; flex-direction: column; padding: 30px 20px; z-index: 1000; overflow-y: auto; }
+        .modal.open { display: flex; animation: slideUp 0.3s ease; }
+        @keyframes slideUp { from { transform: translateY(100%); } to { transform: translateY(0); } }
+
+        .header-ui { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; border-bottom: 1px solid #222; padding-bottom: 10px; }
+        .close-x { font-size: 1.5em; color: #555; cursor: pointer; }
+
+        .card { background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); padding: 18px; border-radius: 20px; margin-bottom: 12px; }
+        .buy-btn { background: #000; border: 1px solid var(--neon); color: var(--neon); padding: 12px 20px; border-radius: 12px; font-weight: 800; font-size: 0.9em; animation: neonGradient 3s linear infinite; cursor: pointer; }
+
+        /* Всплывающие цифры */
+        .floating { position: absolute; pointer-events: none; animation: upMove 0.8s forwards; font-weight: 900; font-size: 2.5em; color: #fff; text-shadow: 0 0 15px var(--neon); }
+        @keyframes upMove { 0% { opacity: 1; transform: translateY(0); } 100% { opacity: 0; transform: translateY(-130px) scale(1.3); } }
+
+        input { width: 100%; padding: 12px; margin: 10px 0; background: #000; border: 1px solid #333; color: white; border-radius: 10px; }
+        #turbo-icon { position: fixed; font-size: 3em; z-index: 5000; cursor: pointer; display: none; animation: pulse 1s infinite; }
     </style>
 </head>
 <body>
 
+<div id="turbo-icon" onclick="activateTurbo()">⚡🔥</div>
+
 <div class="container">
     <div style="text-align: center;">
-        <div id="balance">Загрузка...</div>
-        <div style="color:var(--neon)">+<span id="pps">0</span>/sec</div>
+        <div id="balance">0</div>
+        <div class="stats">AUTO: +<span id="pps">0</span>/SEC</div>
     </div>
 
-    <div style="display:flex; flex-direction:column; align-items:center;">
+    <div class="click-area">
         <button id="capy-btn">🦫</button>
-        <div class="energy-bar"><div id="energy-fill"></div></div>
-        <div style="font-size:0.8em; margin-top:5px;"><span id="cur-e">0</span> / <span id="max-e">0</span></div>
+        <div class="boost-bar-container">
+            <div id="boost-fill"></div>
+        </div>
+        <div style="font-size: 0.7em; color: #555; margin-top: 5px; text-transform: uppercase;"><span id="cur-e">0</span> / <span id="max-e">0</span> Energy</div>
     </div>
 
     <div class="nav">
@@ -56,146 +81,215 @@
 </div>
 
 <div id="shop" class="modal">
-    <div style="display:flex; justify-content:space-between"><h2>SHOP</h2><h2 onclick="tab('main')">✕</h2></div>
-    <div id="shop-list"></div>
-</div>
-
-<div id="sets" class="modal">
-    <div style="display:flex; justify-content:space-between"><h2>ADMIN</h2><h2 onclick="tab('main')">✕</h2></div>
-    <div class="card" id="adm-box">
-        <button style="width:100%; padding:10px;" onclick="adminAuth()">LOGIN</button>
-    </div>
+    <div class="header-ui"><h2>МАГАЗИН</h2><div class="close-x" onclick="tab('main')">✕</div></div>
+    <div id="shop-list" style="overflow-y: auto; flex: 1;"></div>
 </div>
 
 <div id="rank" class="modal">
-    <div style="display:flex; justify-content:space-between"><h2>TOP</h2><h2 onclick="tab('main')">✕</h2></div>
+    <div class="header-ui"><h2>ТОП ИГРОКОВ</h2><div class="close-x" onclick="tab('main')">✕</div></div>
     <div id="leader-list"></div>
+</div>
+
+<div id="sets" class="modal">
+    <div class="header-ui"><h2>АДМИНКА</h2><div class="close-x" onclick="tab('main')">✕</div></div>
+    <div class="card">
+        <div id="adm-status" style="animation: neonGradient 3s linear infinite;">Status: User</div>
+        <button id="log-in" class="buy-btn" style="width:100%;" onclick="adminAuth()">ВОЙТИ КАК АДМИН</button>
+        <div id="adm-panel" style="display:none; margin-top:20px;">
+            <p style="color:var(--gold)">-- Terminal --</p>
+            <input type="number" id="adm-amt" placeholder="Количество монет (число)">
+            <button class="buy-btn" style="width:100%;" onclick="giveMyselfMoney()">💰 ВЫДАТЬ МНЕ</button>
+            <input type="number" id="gv-p" placeholder="Сумма розыгрыша">
+            <input id="gv-d" type="datetime-local">
+            <button class="buy-btn" style="width:100%; margin-top:10px;" onclick="createGiveaway()">ОПУБЛИКОВАТЬ</button>
+            <button class="buy-btn" style="width:100%; background:red; margin-top:20px;" onclick="location.reload()">ВЫЙТИ</button>
+        </div>
+    </div>
 </div>
 
 <script>
 const tg = window.Telegram.WebApp;
 const MY_ID = 6675992053;
+tg.expand();
+
 let data = { bal: 0, click: 1, auto: 0, upCosts: {}, energy: 100, maxEnergy: 100 };
 let upgrades = [];
+let isAuth = false;
+let turbo = false;
 
-for(let i=1; i<=10; i++) upgrades.push({ id: i, name: `Click v${i}`, type: 'click', power: i*2, cost: 500*i });
-for(let i=11; i<=20; i++) upgrades.push({ id: i, name: `Auto v${i-10}`, type: 'auto', power: i, cost: 1000*(i-10) });
+// Генерация экономики
+for(let i=1; i<=15; i++) upgrades.push({ id: i, name: `Клик v${i}`, type: 'click', power: i*3, cost: Math.floor(400 * Math.pow(1.65, i)) });
+for(let i=16; i<=30; i++) upgrades.push({ id: i, name: `Шахта v${i-15}`, type: 'auto', power: i, cost: Math.floor(600 * Math.pow(1.7, i-15)) });
+for(let i=31; i<=40; i++) upgrades.push({ id: i, name: `Энергия x${i-30}`, type: 'energy', power: 200, cost: 2000 * (i-30) });
 
 async function init() {
-    tg.expand();
     const configRes = await fetch('/api/config');
     const config = await configRes.json();
-
-    // Ждем получения данных с сервера
+    
+    // СТРОГАЯ ЗАГРУЗКА ИЗ БАЗЫ ПЕРЕД ЗАПУСКОМ
     const syncRes = await fetch('/api/sync', {
         method: 'POST',
         headers: {'Content-Type': 'application/json'},
         body: JSON.stringify({ userId: tg.initDataUnsafe.user.id, name: tg.initDataUnsafe.user.first_name, isInitial: true })
     });
     const cloud = await syncRes.json();
-    
     data.bal = cloud.bal || 0;
     data.upCosts = cloud.upCosts || {};
-    data.energy = cloud.energy !== undefined ? cloud.energy : 100;
     
+    // Подгружаем Топ
+    document.getElementById('leader-list').innerHTML = config.leaders.map((l, i) => `
+        <div style="display:flex; justify-content:space-between; padding:12px; border-bottom:1px solid #222;">
+            <span>#${i+1} ${l.name}</span><b>${Math.floor(l.bal)}</b>
+        </div>
+    `).join('') || '<p style="text-align:center;">Нет данных</p>';
+
+    // Пересчет из базы
     upgrades.forEach(u => {
         if(data.upCosts[u.id]) {
-            let count = Math.round(Math.log(data.upCosts[u.id]/u.cost)/Math.log(1.6));
-            if(u.type === 'click') data.click += (u.power * count);
-            if(u.type === 'auto') data.auto += (u.power * count);
+            let lvls = Math.round(Math.log(data.upCosts[u.id]/u.cost)/Math.log(1.65));
+            for(let i=0; i<lvls; i++) {
+                if(u.type === 'click') data.click += u.power;
+                else if(u.type === 'auto') data.auto += u.power;
+                else if(u.type === 'energy') data.maxEnergy += u.power;
+            }
         }
     });
+    data.energy = data.maxEnergy;
 
-    render();
-    loop();
+    renderShop();
+    gameTick();
+    setInterval(spawnTurbo, 60000);
 }
 
-function loop() {
+function gameTick() {
     if(data.auto > 0) data.bal += (data.auto / 10);
     if(data.energy < data.maxEnergy) data.energy += 0.2;
-    
     document.getElementById('balance').innerText = Math.floor(data.bal);
     document.getElementById('pps').innerText = data.auto.toFixed(1);
     document.getElementById('cur-e').innerText = Math.floor(data.energy);
     document.getElementById('max-e').innerText = data.maxEnergy;
-    document.getElementById('energy-fill').style.width = (data.energy / data.maxEnergy * 100) + '%';
-    
-    setTimeout(loop, 100);
+    document.getElementById('boost-fill').style.width = (data.energy / data.maxEnergy * 100) + '%';
+    setTimeout(gameTick, 100);
 }
 
+// КЛИК С АНИМАЦИЕЙ И ВСЕМИ ДЕЛАМИ
 document.getElementById('capy-btn').addEventListener('touchstart', (e) => {
     e.preventDefault();
-    if(data.energy < 1) return;
-    data.bal += data.click;
+    if(data.energy < 1) {
+        tg.showAlert("Энергия на нуле!"); 
+        tg.HapticFeedback.notificationOccurred('error');
+        return;
+    }
+    
+    let val = turbo ? data.click * 10 : data.click;
+    data.bal += val;
     data.energy -= 1;
-    if(Math.floor(data.bal) % 10 === 0) sync();
+    
+    // Всплывающая цифра
+    const n = document.createElement('div');
+    n.className = 'floating';
+    n.style.left = e.touches[0].clientX + 'px'; n.style.top = e.touches[0].clientY + 'px';
+    n.innerText = `+${val}`; document.body.appendChild(n);
+    setTimeout(() => n.remove(), 700);
+    
+    tg.HapticFeedback.impactOccurred('medium');
 });
 
-async function sync() {
+// Автосохранение раз в 15 кликов
+setInterval(() => {
     fetch('/api/sync', { 
         method: 'POST', 
         headers: {'Content-Type': 'application/json'}, 
-        body: JSON.stringify({ userId: tg.initDataUnsafe.user.id, bal: data.bal, upCosts: data.upCosts, energy: data.energy }) 
+        body: JSON.stringify({ userId: tg.initDataUnsafe.user.id, bal: data.bal, upCosts: data.upCosts }) 
     });
-}
+}, 15000);
 
-function render() {
+function renderShop() {
     document.getElementById('shop-list').innerHTML = upgrades.map(u => {
         const cost = data.upCosts[u.id] || u.cost;
-        return `<div class="card" style="display:flex; justify-content:space-between" onclick="buy(${u.id})">
-            <span>${u.name}</span> <button>${cost}</button>
-        </div>`;
+        return `
+            <div class="card" style="display:flex; justify-content:space-between; align-items:center;" onclick="buyItem(${u.id})">
+                <div><b>${u.name}</b><br><small style="color:var(--neon)">+${u.power} Power</small></div>
+                <button class="buy-btn">${cost}</button>
+            </div>
+        `;
     }).join('');
 }
 
-function buy(id) {
+function buyItem(id) {
     const u = upgrades.find(x => x.id === id);
     let cost = data.upCosts[id] || u.cost;
     if(data.bal >= cost) {
         data.bal -= cost;
         if(u.type === 'click') data.click += u.power;
-        else data.auto += u.power;
-        data.upCosts[id] = Math.floor(cost * 1.6);
-        render();
-        sync();
+        else if(u.type === 'auto') data.auto += u.power;
+        else if(u.type === 'energy') data.maxEnergy += u.power;
+        data.upCosts[id] = Math.floor(cost * 1.65);
+        renderShop();
+        fetch('/api/sync', { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({ userId: tg.initDataUnsafe.user.id, bal: data.bal, upCosts: data.upCosts }) });
+    } else {
+        tg.showAlert("Недостаточно монет!"); // ТВОЕ УВЕДОМЛЕНИЕ ВЕРНУЛ
+        tg.HapticFeedback.notificationOccurred('warning');
     }
 }
 
 async function adminAuth() {
-    const pass = prompt("Password:");
-    if(pass === "GHG227YYK%%7") {
-        document.getElementById('adm-box').innerHTML = `
-            <input type="number" id="adm-amt" placeholder="Сумма монет">
-            <button onclick="sendMoney()" style="width:100%; padding:10px; background:var(--neon); color:#000;">ВЫДАТЬ СЕБЕ</button>
-            <hr>
-            <input type="number" id="gv-prize" placeholder="Приз розыгрыша">
-            <input type="datetime-local" id="gv-time">
-            <button onclick="addGv()" style="width:100%; padding:10px;">СОЗДАТЬ РОЗЫГРЫШ</button>
-        `;
+    if(tg.initDataUnsafe.user.id != MY_ID) return;
+    const pass = prompt("Пароль:");
+    const res = await fetch('/api/admin/verify', { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({ userId: MY_ID, password: pass }) });
+    if(res.ok) {
+        isAuth = true; sessionStorage.setItem('ak', pass);
+        document.getElementById('adm-panel').style.display = 'block';
+        document.getElementById('adm-status').innerText = "Status: MASTER ADMIN";
+        document.getElementById('adm-status').style.color = "var(--gold)";
     }
 }
 
-function sendMoney() {
+function giveMyselfMoney() {
     const amt = document.getElementById('adm-amt').value;
+    if(!amt || amt <= 0) return;
     fetch('/api/admin/action', {
-        method: 'POST',
-        headers: {'Content-Type': 'application/json'},
-        body: JSON.stringify({ userId: MY_ID, password: "GHG227YYK%%7", type: 'add_money', amount: amt })
-    }).then(() => location.reload());
+        method: 'POST', headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({ userId: MY_ID, password: sessionStorage.getItem('ak'), type: 'add_money', amount: amt })
+    }).then(() => {
+        tg.showAlert("Монеты начислены!");
+        location.reload();
+    });
 }
 
-function addGv() {
-    const update = { prize: document.getElementById('gv-prize').value, endTime: document.getElementById('gv-time').value, completed: false };
-    fetch('/api/admin/action', {
-        method: 'POST',
-        headers: {'Content-Type': 'application/json'},
-        body: JSON.stringify({ userId: MY_ID, password: "GHG227YYK%%7", type: 'create_giveaway', update })
-    }).then(() => alert("Розыгрыш создан"));
+function createGiveaway() {
+    const prize = document.getElementById('gv-p').value;
+    const time = document.getElementById('gv-d').value;
+    if(!prize || !time) return;
+    fetch('/api/admin/action', { 
+        method: 'POST', headers: {'Content-Type': 'application/json'}, 
+        body: JSON.stringify({ userId: MY_ID, password: sessionStorage.getItem('ak'), update: { prize, endTime: time, completed: false }, type: 'create_giveaway' }) 
+    }).then(() => {
+        tg.showAlert("Розыгрыш запланирован!");
+        location.reload();
+    });
+}
+
+function spawnTurbo() {
+    const t = document.getElementById('turbo-icon');
+    t.style.left = Math.random() * 80 + '%'; t.style.top = Math.random() * 60 + 20 + '%';
+    t.style.display = 'block';
+    setTimeout(() => t.style.display = 'none', 7000);
+}
+
+function activateTurbo() {
+    turbo = true; document.getElementById('turbo-icon').style.display = 'none';
+    document.getElementById('capy-btn').classList.add('turbo-active');
+    tg.showAlert("🔥 ТУРБО X10 ВКЛЮЧЕН!");
+    setTimeout(() => {
+        turbo = false; document.getElementById('capy-btn').classList.remove('turbo-active');
+    }, 15000);
 }
 
 function tab(id, el) {
     document.querySelectorAll('.modal').forEach(m => m.classList.remove('open'));
     if(id !== 'main') document.getElementById(id).classList.add('open');
+    if(el) { document.querySelectorAll('.n-btn').forEach(b => b.classList.remove('active')); el.classList.add('active'); }
 }
 
 init();
