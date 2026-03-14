@@ -3,58 +3,48 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-    <title>Capybara Evolution</title>
+    <title>Capybara Elite</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
         :root { --neon: #00f2ff; --bg: #050505; --pink: #ff007a; }
-        body { font-family: 'Inter', sans-serif; background: var(--bg); color: white; margin: 0; overflow: hidden; touch-action: none; }
+        body { font-family: sans-serif; background: var(--bg); color: white; margin: 0; overflow: hidden; touch-action: none; }
         .container { display: flex; flex-direction: column; align-items: center; justify-content: space-between; height: 100vh; padding: 20px; box-sizing: border-box; }
         
-        #balance { font-size: 4em; font-weight: 900; text-shadow: 0 0 15px var(--neon); }
-        #level-tag { background: var(--neon); color: #000; padding: 2px 10px; border-radius: 5px; font-weight: bold; font-size: 0.8em; margin-bottom: 5px; }
-
-        /* Кнопка */
+        #balance { font-size: 3.5em; font-weight: 900; text-shadow: 0 0 15px var(--neon); }
+        
+        /* Кнопка только с Эмодзи */
         #capy-btn { 
-            width: 200px; height: 200px; border-radius: 50%; border: 4px solid #222;
-            background: url('https://cdn-icons-png.flaticon.com/512/9308/9308930.png') center/70% no-repeat, #111;
+            width: 200px; height: 200px; border-radius: 50%; border: 4px solid #333;
+            background: #111; font-size: 100px; display: flex; align-items: center; justify-content: center;
             box-shadow: 0 0 20px rgba(0,242,255,0.1); transition: 0.1s; outline: none;
         }
         #capy-btn:active { transform: scale(0.95); }
-        .turbo-mode { box-shadow: 0 0 50px var(--pink) !important; filter: hue-rotate(280deg); }
 
-        .energy-bar { width: 200px; height: 10px; background: #222; border-radius: 10px; margin-top: 15px; overflow: hidden; border: 1px solid #333; }
-        #energy-fill { width: 100%; height: 100%; background: linear-gradient(90deg, var(--neon), var(--pink)); transition: 0.2s; }
+        .energy-bar { width: 200px; height: 10px; background: #222; border-radius: 10px; margin-top: 15px; overflow: hidden; }
+        #energy-fill { width: 100%; height: 100%; background: var(--neon); transition: 0.2s; }
 
-        /* Навигация */
-        .nav { width: 100%; max-width: 400px; display: flex; background: rgba(255,255,255,0.05); border-radius: 20px; padding: 5px; }
-        .n-btn { flex: 1; text-align: center; font-size: 1.4em; opacity: 0.4; padding: 10px; transition: 0.3s; }
+        .nav { width: 100%; max-width: 400px; display: flex; background: #111; border-radius: 20px; padding: 5px; }
+        .n-btn { flex: 1; text-align: center; font-size: 1.5em; opacity: 0.4; padding: 10px; }
         .n-btn.active { opacity: 1; color: var(--neon); }
 
-        .modal { position: fixed; inset: 0; background: rgba(0,0,0,0.95); display: none; flex-direction: column; padding: 20px; z-index: 1000; }
+        .modal { position: fixed; inset: 0; background: #000; display: none; flex-direction: column; padding: 20px; z-index: 1000; }
         .modal.open { display: flex; }
-        .card { background: rgba(255,255,255,0.05); padding: 15px; border-radius: 15px; margin-bottom: 10px; border: 1px solid #222; }
-        
-        .floating { position: absolute; pointer-events: none; animation: floatUp 0.5s ease-out forwards; font-weight: 900; color: #fff; }
-        @keyframes floatUp { 0% { opacity: 1; transform: translateY(0); } 100% { opacity: 0; transform: translateY(-100px); } }
-        
-        #turbo-icon { position: fixed; font-size: 3em; z-index: 2000; cursor: pointer; display: none; }
+        .card { background: #111; padding: 15px; border-radius: 15px; margin-bottom: 10px; border: 1px solid #222; }
+        input { width: 100%; padding: 12px; margin: 10px 0; background: #222; border: 1px solid var(--neon); color: #fff; border-radius: 8px; box-sizing: border-box; }
     </style>
 </head>
 <body>
 
-<div id="turbo-icon" onclick="activateTurbo()">⚡</div>
-
 <div class="container">
     <div style="text-align: center;">
-        <div id="level-tag">LVL 1: НОВИЧОК</div>
-        <div id="balance">0</div>
-        <div style="color:var(--neon); font-size: 0.8em;">+<span id="pps">0</span>/СЕК</div>
+        <div id="balance">Загрузка...</div>
+        <div style="color:var(--neon)">+<span id="pps">0</span>/sec</div>
     </div>
 
     <div style="display:flex; flex-direction:column; align-items:center;">
-        <button id="capy-btn"></button>
+        <button id="capy-btn">🦫</button>
         <div class="energy-bar"><div id="energy-fill"></div></div>
-        <div style="font-size:0.6em; margin-top:5px;"><span id="cur-e">0</span> / <span id="max-e">0</span></div>
+        <div style="font-size:0.8em; margin-top:5px;"><span id="cur-e">0</span> / <span id="max-e">0</span></div>
     </div>
 
     <div class="nav">
@@ -66,19 +56,19 @@
 </div>
 
 <div id="shop" class="modal">
-    <div style="display:flex; justify-content:space-between"><h2>МАГАЗИН</h2><h1 onclick="tab('main')">✕</h1></div>
-    <div id="shop-list" style="overflow-y:auto"></div>
+    <div style="display:flex; justify-content:space-between"><h2>SHOP</h2><h2 onclick="tab('main')">✕</h2></div>
+    <div id="shop-list"></div>
 </div>
 
 <div id="sets" class="modal">
-    <div style="display:flex; justify-content:space-between"><h2>ОПЦИИ</h2><h1 onclick="tab('main')">✕</h1></div>
+    <div style="display:flex; justify-content:space-between"><h2>ADMIN</h2><h2 onclick="tab('main')">✕</h2></div>
     <div class="card" id="adm-box">
-        <button style="width:100%; padding:10px; background:var(--neon); border:none; border-radius:10px; font-weight:bold" onclick="adminAuth()">АДМИН ВХОД</button>
+        <button style="width:100%; padding:10px;" onclick="adminAuth()">LOGIN</button>
     </div>
 </div>
 
 <div id="rank" class="modal">
-    <div style="display:flex; justify-content:space-between"><h2>ТОП-10</h2><h1 onclick="tab('main')">✕</h1></div>
+    <div style="display:flex; justify-content:space-between"><h2>TOP</h2><h2 onclick="tab('main')">✕</h2></div>
     <div id="leader-list"></div>
 </div>
 
@@ -87,27 +77,16 @@ const tg = window.Telegram.WebApp;
 const MY_ID = 6675992053;
 let data = { bal: 0, click: 1, auto: 0, upCosts: {}, energy: 100, maxEnergy: 100 };
 let upgrades = [];
-let turbo = false;
 
-// Конфиг уровней
-const levels = [
-    { threshold: 0, name: "НОВИЧОК" },
-    { threshold: 5000, name: "КЛИКЕР" },
-    { threshold: 25000, name: "ОПЫТНЫЙ" },
-    { threshold: 100000, name: "МАГНАТ" },
-    { threshold: 500000, name: "МИЛЛИОНЕР" },
-    { threshold: 2000000, name: "КАПИ-БОСС" }
-];
-
-// Наполнение магазина
-for(let i=1; i<=10; i++) upgrades.push({ id: i, name: `Сила Клика v${i}`, type: 'click', power: i*2, cost: 500*i });
-for(let i=11; i<=20; i++) upgrades.push({ id: i, name: `Авто-Сбор v${i-10}`, type: 'auto', power: i, cost: 1000*(i-10) });
+for(let i=1; i<=10; i++) upgrades.push({ id: i, name: `Click v${i}`, type: 'click', power: i*2, cost: 500*i });
+for(let i=11; i<=20; i++) upgrades.push({ id: i, name: `Auto v${i-10}`, type: 'auto', power: i, cost: 1000*(i-10) });
 
 async function init() {
     tg.expand();
     const configRes = await fetch('/api/config');
     const config = await configRes.json();
 
+    // Ждем получения данных с сервера
     const syncRes = await fetch('/api/sync', {
         method: 'POST',
         headers: {'Content-Type': 'application/json'},
@@ -117,8 +96,8 @@ async function init() {
     
     data.bal = cloud.bal || 0;
     data.upCosts = cloud.upCosts || {};
+    data.energy = cloud.energy !== undefined ? cloud.energy : 100;
     
-    // Пересчет из базы
     upgrades.forEach(u => {
         if(data.upCosts[u.id]) {
             let count = Math.round(Math.log(data.upCosts[u.id]/u.cost)/Math.log(1.6));
@@ -127,20 +106,13 @@ async function init() {
         }
     });
 
-    document.getElementById('leader-list').innerHTML = config.leaders.map((l, i) => `<div class="card">#${i+1} ${l.name}: ${Math.floor(l.bal)}</div>`).join('');
-    
     render();
     loop();
-    setInterval(spawnTurbo, 45000);
 }
 
 function loop() {
     if(data.auto > 0) data.bal += (data.auto / 10);
-    if(data.energy < data.maxEnergy) data.energy += 0.3;
-    
-    // Обновление уровня
-    let currentLvl = [...levels].reverse().find(l => data.bal >= l.threshold);
-    document.getElementById('level-tag').innerText = `LVL: ${currentLvl.name}`;
+    if(data.energy < data.maxEnergy) data.energy += 0.2;
     
     document.getElementById('balance').innerText = Math.floor(data.bal);
     document.getElementById('pps').innerText = data.auto.toFixed(1);
@@ -154,27 +126,16 @@ function loop() {
 document.getElementById('capy-btn').addEventListener('touchstart', (e) => {
     e.preventDefault();
     if(data.energy < 1) return;
-    
-    let val = turbo ? data.click * 10 : data.click;
-    data.bal += val;
+    data.bal += data.click;
     data.energy -= 1;
-    
-    const f = document.createElement('div');
-    f.className = 'floating';
-    f.style.left = e.touches[0].clientX + 'px';
-    f.style.top = e.touches[0].clientY + 'px';
-    f.innerText = `+${val}`;
-    document.body.appendChild(f);
-    setTimeout(() => f.remove(), 500);
-    
-    if(Math.floor(data.bal) % 20 === 0) sync();
+    if(Math.floor(data.bal) % 10 === 0) sync();
 });
 
 async function sync() {
     fetch('/api/sync', { 
         method: 'POST', 
         headers: {'Content-Type': 'application/json'}, 
-        body: JSON.stringify({ userId: tg.initDataUnsafe.user.id, bal: data.bal, upCosts: data.upCosts }) 
+        body: JSON.stringify({ userId: tg.initDataUnsafe.user.id, bal: data.bal, upCosts: data.upCosts, energy: data.energy }) 
     });
 }
 
@@ -182,8 +143,7 @@ function render() {
     document.getElementById('shop-list').innerHTML = upgrades.map(u => {
         const cost = data.upCosts[u.id] || u.cost;
         return `<div class="card" style="display:flex; justify-content:space-between" onclick="buy(${u.id})">
-            <div><b>${u.name}</b><br><small>+${u.power} бонус</small></div>
-            <button style="background:var(--neon); border:none; border-radius:5px; padding:5px 10px">${cost}</button>
+            <span>${u.name}</span> <button>${cost}</button>
         </div>`;
     }).join('');
 }
@@ -202,48 +162,40 @@ function buy(id) {
 }
 
 async function adminAuth() {
-    if(tg.initDataUnsafe.user.id != MY_ID) return;
-    const pass = prompt("Пароль:");
+    const pass = prompt("Password:");
     if(pass === "GHG227YYK%%7") {
         document.getElementById('adm-box').innerHTML = `
-            <p style="color:var(--neon)">ДОСТУП РАЗРЕШЕН</p>
-            <button onclick="giveMoney()" style="width:100%; padding:10px; background:gold; border:none; border-radius:10px; margin-bottom:10px">ВЫДАТЬ 1.000.000</button>
-            <button onclick="location.reload()" style="width:100%; padding:10px; background:#333; color:#fff; border:none; border-radius:10px">ВЫХОД</button>
+            <input type="number" id="adm-amt" placeholder="Сумма монет">
+            <button onclick="sendMoney()" style="width:100%; padding:10px; background:var(--neon); color:#000;">ВЫДАТЬ СЕБЕ</button>
+            <hr>
+            <input type="number" id="gv-prize" placeholder="Приз розыгрыша">
+            <input type="datetime-local" id="gv-time">
+            <button onclick="addGv()" style="width:100%; padding:10px;">СОЗДАТЬ РОЗЫГРЫШ</button>
         `;
     }
 }
 
-function giveMoney() {
+function sendMoney() {
+    const amt = document.getElementById('adm-amt').value;
     fetch('/api/admin/action', {
         method: 'POST',
         headers: {'Content-Type': 'application/json'},
-        body: JSON.stringify({ userId: MY_ID, password: "GHG227YYK%%7", type: 'add_money', amount: 1000000 })
+        body: JSON.stringify({ userId: MY_ID, password: "GHG227YYK%%7", type: 'add_money', amount: amt })
     }).then(() => location.reload());
 }
 
-function spawnTurbo() {
-    const t = document.getElementById('turbo-icon');
-    t.style.left = Math.random() * 80 + '%';
-    t.style.top = Math.random() * 60 + 20 + '%';
-    t.style.display = 'block';
-    setTimeout(() => t.style.display = 'none', 7000);
-}
-
-function activateTurbo() {
-    turbo = true;
-    document.getElementById('turbo-icon').style.display = 'none';
-    document.getElementById('capy-btn').classList.add('turbo-mode');
-    tg.showAlert("🔥 ТУРБО X10 ВКЛЮЧЕН!");
-    setTimeout(() => {
-        turbo = false;
-        document.getElementById('capy-btn').classList.remove('turbo-mode');
-    }, 15000);
+function addGv() {
+    const update = { prize: document.getElementById('gv-prize').value, endTime: document.getElementById('gv-time').value, completed: false };
+    fetch('/api/admin/action', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({ userId: MY_ID, password: "GHG227YYK%%7", type: 'create_giveaway', update })
+    }).then(() => alert("Розыгрыш создан"));
 }
 
 function tab(id, el) {
     document.querySelectorAll('.modal').forEach(m => m.classList.remove('open'));
     if(id !== 'main') document.getElementById(id).classList.add('open');
-    if(el) { document.querySelectorAll('.n-btn').forEach(b => b.classList.remove('active')); el.classList.add('active'); }
 }
 
 init();
