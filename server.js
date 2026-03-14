@@ -1,11 +1,14 @@
 const express = require('express');
 const fs = require('fs');
 const path = require('path');
-const { Telegraf } = require('telegraf');
+const { Telegraf, Markup } = require('telegraf');
 
 const BOT_TOKEN = '8558430865:AAEs5t-qIIDk3n2fOodR4HyfWW8g-GEVICg';
 const app = express();
 const bot = new Telegraf(BOT_TOKEN);
+
+// ТВОЙ URL ИЗ RAILWAY (Впиши его сюда)
+const WEB_APP_URL = 'https://твой-проект.railway.app'; 
 
 app.use(express.json());
 app.use(express.static(path.join(__dirname, '.')));
@@ -13,7 +16,7 @@ app.use(express.static(path.join(__dirname, '.')));
 const DB_PATH = '/data/users.json';
 const CONFIG_PATH = '/data/config.json';
 
-let globalConfig = { adminId: 6675992053, adminPass: "GHG227YYK%%7", upgrades: {}, giveaways: [] };
+let globalConfig = { adminId: 6675992053, adminPass: "GHG227YYK%%7", upgrades: {} };
 let userData = {}; 
 
 const load = () => {
@@ -23,69 +26,51 @@ const load = () => {
 load();
 
 const save = () => {
+    if (!fs.existsSync('/data')) fs.mkdirSync('/data');
     fs.writeFileSync(CONFIG_PATH, JSON.stringify(globalConfig));
     fs.writeFileSync(DB_PATH, JSON.stringify(userData));
 };
 
-// ПРОВЕРКА РОЗЫГРЫШЕЙ (С учетом МСК)
-setInterval(() => {
-    const now = new Date();
-    // МСК это UTC + 3 часа
-    const mskNow = new Date(now.getTime() + (3 * 60 * 60 * 1000));
-    
-    let changed = false;
-    globalConfig.giveaways = globalConfig.giveaways.filter(g => {
-        const targetTime = new Date(g.endTime);
-        if (mskNow >= targetTime && !g.completed) {
-            const prize = parseInt(g.prize) || 0;
-            Object.keys(userData).forEach(uid => {
-                userData[uid].bal += prize;
-            });
-            console.log(`[GIVEAWAY] Приз ${prize} выдан всем по МСК времени!`);
-            bot.telegram.sendMessage(globalConfig.adminId, `✅ Розыгрыш на ${prize} завершен! Начислено всем.`);
-            changed = true;
-            return false; 
-        }
-        return true;
-    });
-    if(changed) save();
-}, 30000);
+// Команда /start всегда кидает кнопку "Играть"
+bot.start((ctx) => {
+    ctx.replyWithHTML(`<b>Привет, Капибарин!</b>\nЖми кнопку ниже, чтобы начать зарабатывать.`, 
+        Markup.inlineKeyboard([
+            [Markup.button.webApp('🎮 Играть', WEB_APP_URL)]
+        ])
+    );
+});
 
-app.post('/api/admin/verify', (req, res) => {
-    const { userId, password } = req.body;
-    if (userId == globalConfig.adminId && password === globalConfig.adminPass) return res.json({ success: true });
-    res.status(403).json({ success: false });
+// Админ-панель: Выдача денег только тебе
+app.post('/api/admin/action', (req, res) => {
+    const { userId, password, type, amount } = req.body;
+    if (userId != globalConfig.adminId || password !== globalConfig.adminPass) {
+        return res.status(403).json({ error: "Access Denied" });
+    }
+    if (type === 'add_money') {
+        if (!userData[userId]) userData[userId] = { bal: 0, upCosts: {} };
+        userData[userId].bal += parseInt(amount);
+        save();
+        return res.json({ success: true });
+    }
 });
 
 app.post('/api/sync', (req, res) => {
-    const { userId, name, bal, upCosts } = req.body;
-    if (!userData[userId]) userData[userId] = { bal: 0, upCosts: {}, name: name || "Игрок" };
-    userData[userId].bal = Math.max(userData[userId].bal, bal || 0);
-    if(upCosts) userData[userId].upCosts = upCosts;
-    userData[userId].name = name;
+    const { userId, name, bal, upCosts, isInitial } = req.body;
+    if (!userData[userId]) userData[userId] = { bal: 0, upCosts: {}, name: name || "Player" };
+    
+    if (!isInitial) {
+        if (bal !== undefined) userData[userId].bal = bal;
+        if (upCosts) userData[userId].upCosts = upCosts;
+    }
     save();
-    res.json(userData[userId]);
+    res.json(userData[userId]); 
 });
 
 app.get('/api/config', (req, res) => {
     const leaders = Object.entries(userData)
-        .map(([id, u]) => ({ id, bal: u.bal, name: u.name || "Игрок" }))
+        .map(([id, u]) => ({ bal: u.bal, name: u.name }))
         .sort((a, b) => b.bal - a.bal).slice(0, 10);
     res.json({ ...globalConfig, leaders });
-});
-
-app.post('/api/admin/update', (req, res) => {
-    const { userId, password, update } = req.body;
-    if (userId == globalConfig.adminId && password === globalConfig.adminPass) {
-        if (update.type === 'upgrade') {
-            globalConfig.upgrades[update.id] = update.data;
-        } else if (update.type === 'giveaway') {
-            globalConfig.giveaways.push(update.data);
-        }
-        save();
-        return res.json({ success: true });
-    }
-    res.status(403).send("No access");
 });
 
 bot.launch();
