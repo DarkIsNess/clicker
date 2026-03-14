@@ -38,7 +38,9 @@ setInterval(() => {
     let changed = false;
     globalConfig.giveaways = globalConfig.giveaways.filter(g => {
         if (now >= new Date(g.endTime) && !g.completed) {
-            Object.keys(userData).forEach(uid => { userData[uid].bal += parseInt(g.prize); });
+            const prize = parseInt(g.prize) || 0;
+            Object.keys(userData).forEach(uid => { userData[uid].bal += prize; });
+            console.log(`🎁 Приз ${prize} выдан всем!`);
             changed = true; return false; 
         }
         return true;
@@ -60,7 +62,7 @@ app.post('/api/admin/action', (req, res) => {
         if (!userData[userId]) userData[userId] = { bal: 0, upCosts: {} };
         userData[userId].bal += parseInt(amount);
         save();
-        return res.json({ success: true });
+        return res.json({ success: true, newBal: userData[userId].bal });
     }
     if (type === 'create_giveaway') {
         globalConfig.giveaways.push(update);
@@ -70,14 +72,15 @@ app.post('/api/admin/action', (req, res) => {
 });
 
 app.post('/api/sync', (req, res) => {
-    const { userId, name, bal, upCosts, energy, isInitial } = req.body;
-    if (!userData[userId]) userData[userId] = { bal: 0, upCosts: {}, energy: 100, name: name || "Player" };
+    const { userId, name, bal, upCosts, isInitial } = req.body;
+    if (!userData[userId]) userData[userId] = { bal: 0, upCosts: {}, name: name || "Player" };
     
     if (!isInitial) {
         if (bal !== undefined) userData[userId].bal = bal;
         if (upCosts) userData[userId].upCosts = upCosts;
-        if (energy !== undefined) userData[userId].energy = energy;
     }
+    
+    userData[userId].name = name;
     save();
     res.json(userData[userId]); 
 });
