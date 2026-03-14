@@ -7,7 +7,6 @@ const BOT_TOKEN = '8558430865:AAEs5t-qIIDk3n2fOodR4HyfWW8g-GEVICg';
 const app = express();
 const bot = new Telegraf(BOT_TOKEN);
 
-// ТВОЙ URL ИЗ RAILWAY (Впиши его сюда)
 const WEB_APP_URL = 'https://clicker-production-2ed0.up.railway.app'; 
 
 app.use(express.json());
@@ -16,7 +15,10 @@ app.use(express.static(path.join(__dirname, '.')));
 const DB_PATH = '/data/users.json';
 const CONFIG_PATH = '/data/config.json';
 
-let globalConfig = { adminId: 6675992053, adminPass: "GHG227YYK%%7", upgrades: {} };
+// Создаем папку если нет
+if (!fs.existsSync('/data')) fs.mkdirSync('/data');
+
+let globalConfig = { adminId: 6675992053, adminPass: "GHG227YYK%%7", upgrades: {}, giveaways: [] };
 let userData = {}; 
 
 const load = () => {
@@ -26,41 +28,55 @@ const load = () => {
 load();
 
 const save = () => {
-    if (!fs.existsSync('/data')) fs.mkdirSync('/data');
     fs.writeFileSync(CONFIG_PATH, JSON.stringify(globalConfig));
     fs.writeFileSync(DB_PATH, JSON.stringify(userData));
 };
 
-// Команда /start всегда кидает кнопку "Играть"
+// Проверка розыгрышей каждые 30 секунд
+setInterval(() => {
+    const now = new Date(new Date().getTime() + (3 * 60 * 60 * 1000)); // МСК
+    let changed = false;
+    globalConfig.giveaways = globalConfig.giveaways.filter(g => {
+        if (now >= new Date(g.endTime) && !g.completed) {
+            Object.keys(userData).forEach(uid => { userData[uid].bal += parseInt(g.prize); });
+            changed = true; return false; 
+        }
+        return true;
+    });
+    if(changed) save();
+}, 30000);
+
 bot.start((ctx) => {
-    ctx.replyWithHTML(`<b>Привет, Капибарин!</b>\nЖми кнопку ниже, чтобы начать зарабатывать.`, 
-        Markup.inlineKeyboard([
-            [Markup.button.webApp('🎮 Играть', WEB_APP_URL)]
-        ])
+    ctx.replyWithHTML(`<b>Играть в Капибару!</b>`, 
+        Markup.inlineKeyboard([[Markup.button.webApp('🎮 Играть', WEB_APP_URL)]])
     );
 });
 
-// Админ-панель: Выдача денег только тебе
 app.post('/api/admin/action', (req, res) => {
-    const { userId, password, type, amount } = req.body;
-    if (userId != globalConfig.adminId || password !== globalConfig.adminPass) {
-        return res.status(403).json({ error: "Access Denied" });
-    }
+    const { userId, password, type, amount, update } = req.body;
+    if (userId != globalConfig.adminId || password !== globalConfig.adminPass) return res.status(403).send();
+
     if (type === 'add_money') {
         if (!userData[userId]) userData[userId] = { bal: 0, upCosts: {} };
         userData[userId].bal += parseInt(amount);
         save();
         return res.json({ success: true });
     }
+    if (type === 'create_giveaway') {
+        globalConfig.giveaways.push(update);
+        save();
+        return res.json({ success: true });
+    }
 });
 
 app.post('/api/sync', (req, res) => {
-    const { userId, name, bal, upCosts, isInitial } = req.body;
-    if (!userData[userId]) userData[userId] = { bal: 0, upCosts: {}, name: name || "Player" };
+    const { userId, name, bal, upCosts, energy, isInitial } = req.body;
+    if (!userData[userId]) userData[userId] = { bal: 0, upCosts: {}, energy: 100, name: name || "Player" };
     
     if (!isInitial) {
         if (bal !== undefined) userData[userId].bal = bal;
         if (upCosts) userData[userId].upCosts = upCosts;
+        if (energy !== undefined) userData[userId].energy = energy;
     }
     save();
     res.json(userData[userId]); 
