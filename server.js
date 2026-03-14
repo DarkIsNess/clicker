@@ -21,8 +21,10 @@ let globalConfig = { adminId: 6675992053, adminPass: "GHG227YYK%%7", giveaways: 
 let userData = {}; 
 
 const load = () => {
-    if (fs.existsSync(CONFIG_PATH)) globalConfig = JSON.parse(fs.readFileSync(CONFIG_PATH));
-    if (fs.existsSync(DB_PATH)) userData = JSON.parse(fs.readFileSync(DB_PATH));
+    try {
+        if (fs.existsSync(CONFIG_PATH)) globalConfig = JSON.parse(fs.readFileSync(CONFIG_PATH));
+        if (fs.existsSync(DB_PATH)) userData = JSON.parse(fs.readFileSync(DB_PATH));
+    } catch (e) { console.log("Ошибка загрузки БД:", e); }
 };
 load();
 
@@ -31,25 +33,35 @@ const save = () => {
     fs.writeFileSync(DB_PATH, JSON.stringify(userData));
 };
 
-// ЛОГИКА РОЗЫГРЫШЕЙ (НЕ УДАЛЯТЬ!)
+// ИСПРАВЛЕННЫЙ ЦИКЛ РОЗЫГРЫШЕЙ
 setInterval(() => {
-    const now = new Date(new Date().getTime() + (3 * 60 * 60 * 1000)); // МСК
+    const now = new Date(new Date().getTime() + (3 * 60 * 60 * 1000)); // МСК время
     let changed = false;
+    
     globalConfig.giveaways = globalConfig.giveaways.filter(g => {
-        if (now >= new Date(g.endTime) && !g.completed) {
+        const endTime = new Date(g.endTime);
+        if (now >= endTime && !g.completed) {
             const prize = parseInt(g.prize) || 0;
-            Object.keys(userData).forEach(uid => { userData[uid].bal += prize; });
-            changed = true; return false; 
+            console.log(`🎁 РОЗЫГРЫШ ЗАВЕРШЕН! Начисляю ${prize} монет...`);
+            
+            // Начисляем ВСЕМ игрокам в базе
+            Object.keys(userData).forEach(uid => {
+                userData[uid].bal = (userData[uid].bal || 0) + prize;
+            });
+            
+            changed = true;
+            return false; // Удаляем из списка активных
         }
         return true;
     });
+    
     if(changed) save();
-}, 30000);
+}, 10000); // Проверка каждые 10 сек
 
 app.post('/api/admin/verify', (req, res) => {
     const { userId, password } = req.body;
     if (userId == globalConfig.adminId && password === globalConfig.adminPass) return res.json({ success: true });
-    res.status(403).json({ error: "Wrong pass" });
+    res.status(403).json({ error: "Forbidden" });
 });
 
 app.post('/api/admin/action', (req, res) => {
@@ -63,8 +75,9 @@ app.post('/api/admin/action', (req, res) => {
         return res.json({ success: true });
     }
     if (type === 'create_giveaway') {
-        globalConfig.giveaways.push(update);
+        globalConfig.giveaways.push({ ...update, completed: false });
         save();
+        console.log("✅ Новый розыгрыш создан:", update);
         return res.json({ success: true });
     }
 });
@@ -74,21 +87,20 @@ app.post('/api/sync', (req, res) => {
     const now = Date.now();
 
     if (!userData[userId]) {
-        userData[userId] = { bal: 0, upCosts: {}, energy: 100, maxEnergy: 100, name: name || "Unknown", lastSeen: now };
+        userData[userId] = { bal: 0, upCosts: {}, energy: 100, maxEnergy: 100, name: name || "Player", lastSeen: now };
     }
 
     if (isInitial) {
-        // РАСЧЕТ ОФФЛАЙН ЭНЕРГИИ
-        const offlineSec = (now - userData[userId].lastSeen) / 1000;
-        const recovered = offlineSec * 0.2; // 0.2 энергии в секунду
-        userData[userId].energy = Math.min(userData[userId].maxEnergy || 100, userData[userId].energy + recovered);
+        const offlineSec = (now - (userData[userId].lastSeen || now)) / 1000;
+        const recovered = offlineSec * 0.2; 
+        userData[userId].energy = Math.min(userData[userId].maxEnergy || 100, (userData[userId].energy || 0) + recovered);
     } else {
         if (bal !== undefined) userData[userId].bal = bal;
         if (upCosts) userData[userId].upCosts = upCosts;
         if (energy !== undefined) userData[userId].energy = energy;
     }
 
-    if (name) userData[userId].name = name; // Чтобы не было undefined в топе
+    if (name && name !== "undefined") userData[userId].name = name;
     userData[userId].lastSeen = now;
     save();
     res.json(userData[userId]); 
