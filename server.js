@@ -8,7 +8,7 @@ const app = express();
 const bot = new Telegraf(BOT_TOKEN);
 
 // ТВОЙ URL ИЗ RAILWAY (Впиши его сюда)
-const WEB_APP_URL = 'https://твой-проект.railway.app'; 
+const WEB_APP_URL = 'https://clicker-production-2ed0.up.railway.app'; 
 
 app.use(express.json());
 app.use(express.static(path.join(__dirname, '.')));
