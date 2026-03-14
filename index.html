@@ -3,32 +3,125 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-    <title>Rouge Clicker</title>
+    <title>CapybaraClicker</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
-        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #0f0f0f; color: #fff; text-align: center; margin: 0; overflow: hidden; }
-        .container { display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100vh; }
-        #balance { font-size: 3.5em; font-weight: bold; margin-bottom: 10px; color: #00d2ff; text-shadow: 0 0 20px #00d2ff; }
-        #click-btn { width: 200px; height: 200px; border-radius: 50%; border: 8px solid #333; background: radial-gradient(circle, #1c9cda 0%, #074a6b 100%); cursor: pointer; box-shadow: 0 0 30px rgba(28, 156, 218, 0.5); transition: transform 0.05s; }
-        #click-btn:active { transform: scale(0.92); border-color: #00d2ff; }
-        .stats { margin-top: 20px; font-size: 1.2em; opacity: 0.8; }
-        .shop-btn { margin-top: 30px; padding: 12px 25px; background: #333; border: 1px solid #444; color: white; border-radius: 12px; font-weight: bold; }
+        body { font-family: 'Arial', sans-serif; background: #1a1a1a; color: white; text-align: center; margin: 0; user-select: none; }
+        .container { display: flex; flex-direction: column; align-items: center; justify-content: space-around; height: 100vh; padding: 20px; box-sizing: border-box; }
+        
+        #balance-container { margin-top: 20px; }
+        #balance { font-size: 4em; font-weight: bold; color: #ffcc00; text-shadow: 0 0 20px rgba(255, 204, 0, 0.6); }
+        .stats-text { font-size: 1.2em; opacity: 0.7; letter-spacing: 2px; }
+
+        /* Кнопка-Капибара */
+        #click-btn { 
+            width: 250px; height: 250px; border-radius: 50%; border: none;
+            background: radial-gradient(circle, #ffcc00 0%, #cc9900 100%);
+            cursor: pointer; position: relative;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.5);
+            transition: transform 0.05s;
+            display: flex; align-items: center; justify-content: center; font-size: 100px;
+        }
+        #click-btn:active { transform: scale(0.95); }
+        #click-btn::after { content: '🦫'; } /* Эмодзи капибары (бобер похож) */
+
+        .controls { width: 100%; display: flex; flex-direction: column; gap: 10px; }
+        .btn { 
+            padding: 15px; border-radius: 15px; border: none; font-weight: bold; font-size: 1em;
+            cursor: pointer; transition: 0.3s;
+        }
+        .upgrade-btn { background: #4CAF50; color: white; box-shadow: 0 4px #2E7D32; }
+        .upgrade-btn:active { box-shadow: 0 0; transform: translateY(4px); }
+        
+        .top-btn { background: #333; color: #aaa; }
+
+        /* Анимация вылетающих цифр */
+        .floating-text {
+            position: absolute; color: #ffcc00; font-size: 2em; font-weight: bold;
+            pointer-events: none; animation: float 0.7s ease-out forwards;
+        }
+        @keyframes float {
+            0% { opacity: 1; transform: translateY(0); }
+            100% { opacity: 0; transform: translateY(-100px); }
+        }
     </style>
 </head>
 <body>
     <div class="container">
-        <div class="stats">БАЛАНС</div>
-        <div id="balance">0</div>
+        <div id="balance-container">
+            <div class="stats-text">БАЛАНС</div>
+            <div id="balance">0</div>
+        </div>
+
         <button id="click-btn"></button>
-        <div class="stats" id="per-click">За клик: +1</div>
-        <button class="shop-btn" id="upgrade-btn">УЛУЧШИТЬ (Цена: 10)</button>
+
+        <div class="controls">
+            <div class="stats-text" id="per-click">СИЛА КЛИКА: 1</div>
+            <button class="btn upgrade-btn" id="upgrade-btn">УЛУЧШИТЬ (+1) — 10 💰</button>
+            <button class="btn top-btn">🏆 ТОП ИГРОКОВ (СКОРО)</button>
+        </div>
     </div>
 
     <script>
         const webapp = window.Telegram.WebApp;
         webapp.expand();
-        webapp.ready();
 
         let balance = 0;
         let clickPower = 1;
         let upgradeCost = 10;
+
+        const balanceEl = document.getElementById('balance');
+        const perClickEl = document.getElementById('per-click');
+        const upgradeBtn = document.getElementById('upgrade-btn');
+        const clickBtn = document.getElementById('click-btn');
+
+        function updateUI() {
+            balanceEl.innerText = Math.floor(balance);
+            perClickEl.innerText = `СИЛА КЛИКА: ${clickPower}`;
+            upgradeBtn.innerText = `УЛУЧШИТЬ (+1) — ${Math.floor(upgradeCost)} 💰`;
+        }
+
+        // ГЛАВНЫЙ КЛИК
+        clickBtn.addEventListener('click', (e) => {
+            balance += clickPower;
+            updateUI();
+            
+            // Вибрация
+            if (webapp.HapticFeedback) webapp.HapticFeedback.impactOccurred('medium');
+
+            // Создаем вылетающий текст +1
+            const x = e.clientX;
+            const y = e.clientY;
+            const text = document.createElement('div');
+            text.className = 'floating-text';
+            text.innerText = `+${clickPower}`;
+            text.style.left = `${x - 20}px`;
+            text.style.top = `${y - 50}px`;
+            document.body.appendChild(text);
+            setTimeout(() => text.remove(), 700);
+        });
+
+        // АПГРЕЙД
+        upgradeBtn.addEventListener('click', () => {
+            if (balance >= upgradeCost) {
+                balance -= upgradeCost;
+                clickPower += 1;
+                upgradeCost *= 2; // Удвоение цены
+                updateUI();
+                if (webapp.HapticFeedback) webapp.HapticFeedback.notificationOccurred('success');
+            } else {
+                webapp.showAlert('Недостаточно монет для Капибары!');
+            }
+        });
+
+        // Отправка данных на сервер (Railway)
+        setInterval(() => {
+            fetch('/save', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ balance, clickPower })
+            }).catch(e => console.log('Ошибка сохранения'));
+        }, 5000);
+    </script>
+</body>
+</html>
