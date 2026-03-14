@@ -3,238 +3,245 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-    <title>Capybara Clicker: Ultimate</title>
+    <title>Capybara: Evolution</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
-        :root { --main-color: #ffcc00; --bg: #121212; --accent: #00e5ff; }
-        body { 
-            font-family: 'Segoe UI', Roboto, sans-serif; background: var(--bg); color: white; 
-            margin: 0; overflow: hidden; touch-action: none; user-select: none;
-        }
+        :root { --gold: #ffcc00; --bg: #0a0a0a; --neon: #00e5ff; --danger: #ff4444; }
+        body { font-family: 'Segoe UI', sans-serif; background: var(--bg); color: white; margin: 0; overflow: hidden; touch-action: none; }
         
-        /* Хедер */
-        .header { padding: 20px; background: rgba(255,255,255,0.05); border-bottom: 2px solid #333; text-align: center; }
-        #balance { font-size: 3.5em; font-weight: 900; color: var(--main-color); margin: 0; }
-        .combo-container { width: 80%; height: 10px; background: #333; margin: 10px auto; border-radius: 5px; overflow: hidden; }
-        #combo-fill { width: 0%; height: 100%; background: var(--accent); transition: width 0.1s linear; box-shadow: 0 0 15px var(--accent); }
-        #combo-text { font-size: 1em; color: var(--accent); font-weight: bold; margin-bottom: 5px; }
+        /* Эффекты фона */
+        .stars { position: absolute; width: 100%; height: 100%; background: radial-gradient(circle at 50% 50%, #1a1a1a 0%, #000 100%); z-index: -1; }
+
+        .header { padding: 15px; text-align: center; background: rgba(0,0,0,0.5); backdrop-filter: blur(10px); }
+        #balance { font-size: 3em; font-weight: 900; color: var(--gold); text-shadow: 0 0 20px rgba(255,204,0,0.3); }
+        
+        /* Шкала Комбо */
+        .combo-box { width: 85%; margin: 10px auto; }
+        .combo-bar { width: 100%; height: 12px; background: #222; border-radius: 6px; overflow: hidden; border: 1px solid #333; }
+        #combo-fill { width: 0%; height: 100%; background: var(--neon); transition: width 0.1s linear; }
+        #combo-fill.max { background: var(--danger); box-shadow: 0 0 15px var(--danger); }
+        #combo-info { display: flex; justify-content: space-between; font-weight: bold; font-size: 0.8em; margin-top: 5px; }
 
         /* Игровая зона */
-        .game-area { height: 55vh; display: flex; align-items: center; justify-content: center; position: relative; }
-        #click-btn { 
-            width: 230px; height: 230px; border-radius: 50%; border: 10px solid #222;
-            background: #3d2b1f; box-shadow: 0 0 50px rgba(0,0,0,0.8);
-            font-size: 110px; cursor: pointer; display: flex; align-items: center; justify-content: center;
-            transition: transform 0.05s; z-index: 5; outline: none; -webkit-tap-highlight-color: transparent;
+        .game-area { height: 50vh; display: flex; flex-direction: column; align-items: center; justify-content: center; }
+        #capy-btn { 
+            width: 240px; height: 240px; border-radius: 50%; background: #3d2b1f; border: 8px solid #222;
+            font-size: 100px; display: flex; align-items: center; justify-content: center;
+            box-shadow: 0 0 50px rgba(0,0,0,0.5); transition: 0.05s; -webkit-tap-highlight-color: transparent;
         }
-        #click-btn::after { content: '🦫'; }
+        #capy-btn::after { content: '🦫'; }
 
-        /* Нижнее меню */
-        .nav-bar { display: flex; justify-content: space-around; background: #1a1a1a; padding: 15px 0; position: fixed; bottom: 0; width: 100%; border-top: 1px solid #333; z-index: 200; }
-        .nav-item { font-size: 1.8em; cursor: pointer; filter: grayscale(1); transition: 0.3s; padding: 5px 20px; }
-        .nav-item.active { filter: grayscale(0); transform: scale(1.2); border-bottom: 3px solid var(--main-color); }
+        /* Навигация */
+        .nav { position: fixed; bottom: 0; width: 100%; display: flex; background: #111; padding: 10px 0; border-top: 1px solid #333; }
+        .nav-btn { flex: 1; font-size: 1.5em; opacity: 0.5; transition: 0.3s; cursor: pointer; }
+        .nav-btn.active { opacity: 1; transform: scale(1.2); color: var(--gold); }
 
-        /* Окна (Модалки) */
-        .modal { 
-            position: fixed; top: 0; left: 0; width: 100%; height: 88vh; 
-            background: var(--bg); z-index: 100; transform: translateY(100%);
-            transition: 0.4s cubic-bezier(0.4, 0, 0.2, 1); padding: 25px; box-sizing: border-box;
-            overflow-y: auto;
-        }
-        .modal.open { transform: translateY(0); }
-        .close-btn { position: absolute; top: 20px; right: 20px; font-size: 2em; color: #ff4444; cursor: pointer; }
-
-        h2 { border-bottom: 2px solid #333; padding-bottom: 10px; margin-top: 0; }
-
-        /* Элементы магазина */
-        .shop-item { 
-            background: #1e1e1e; padding: 18px; border-radius: 18px; margin-bottom: 15px;
-            display: flex; justify-content: space-between; align-items: center; border: 1px solid #333;
-        }
-        .shop-info h4 { margin: 0; color: var(--main-color); font-size: 1.1em; }
-        .shop-info p { margin: 5px 0 0; font-size: 0.85em; opacity: 0.6; }
-        .buy-btn { background: var(--main-color); color: black; border: none; padding: 12px 18px; border-radius: 12px; font-weight: bold; font-size: 0.9em; }
-        .buy-btn:active { opacity: 0.7; }
-
+        /* Модалки */
+        .page { position: fixed; top: 0; left: 0; width: 100%; height: 90vh; background: var(--bg); transform: translateY(100%); transition: 0.4s; padding: 20px; box-sizing: border-box; overflow-y: auto; z-index: 100; }
+        .page.active { transform: translateY(0); }
+        .card { background: #161616; padding: 15px; border-radius: 15px; margin-bottom: 10px; display: flex; justify-content: space-between; align-items: center; border: 1px solid #222; }
+        .buy-btn { background: var(--gold); border: none; padding: 10px 15px; border-radius: 10px; font-weight: bold; }
+        
         /* Лидеры */
-        .leader-item { display: flex; justify-content: space-between; padding: 15px; border-bottom: 1px solid #222; font-size: 1.1em; }
+        .leader-row { display: flex; align-items: center; gap: 15px; padding: 12px; border-bottom: 1px solid #222; }
+        .avatar { width: 40px; height: 40px; background: #333; border-radius: 50%; display: flex; align-items: center; justify-content: center; }
 
-        /* Вылетающие цифры */
-        .floating-text { position: absolute; font-weight: 900; pointer-events: none; animation: float 0.8s ease-out forwards; z-index: 300; }
-        @keyframes float { 0% { opacity: 1; transform: translateY(0) scale(1); } 100% { opacity: 0; transform: translateY(-130px) scale(1.6); } }
+        .floating { position: absolute; pointer-events: none; animation: up 0.8s forwards; font-weight: 900; font-size: 2em; }
+        @keyframes up { 0% { opacity: 1; transform: translateY(0); } 100% { opacity: 0; transform: translateY(-150px); } }
     </style>
 </head>
 <body>
-
-<div class="header">
-    <div id="balance">0</div>
-    <div id="combo-text">COMBO X1</div>
-    <div class="combo-container"><div id="combo-fill"></div></div>
-    <div style="font-size: 0.9em; color: #888;">💰 В секунду: +<span id="auto-val">0</span></div>
-</div>
-
-<div class="game-area">
-    <button id="click-btn"></button>
-</div>
-
-<div id="shop-modal" class="modal">
-    <div class="close-btn" onclick="toggleModal('main')">✖</div>
-    <h2>🏪 МАГАЗИН</h2>
-    <div id="shop-list">
-        <div class="shop-item">
-            <div class="shop-info"><h4>Медиум клик</h4><p>+5 к силе нажатия</p></div>
-            <button class="buy-btn" onclick="buy('click', 5, 250)">250 💰</button>
+    <div class="stars"></div>
+    <div class="header">
+        <div id="balance">0</div>
+        <div class="combo-box">
+            <div id="combo-info"><span id="combo-text">COMBO X1</span> <span id="max-label" style="display:none; color:var(--danger)">MAX!</span></div>
+            <div class="combo-bar"><div id="combo-fill"></div></div>
         </div>
-        <div class="shop-item">
-            <div class="shop-info"><h4>Супер клик</h4><p>+100 к силе нажатия</p></div>
-            <button class="buy-btn" onclick="buy('click', 100, 5000)">5000 💰</button>
-        </div>
-        <div class="shop-item">
-            <div class="shop-info"><h4>Авто-лапа</h4><p>+1 монета/сек автоматически</p></div>
-            <button class="buy-btn" onclick="buy('auto', 1, 100)">100 💰</button>
-        </div>
-        <div class="shop-item">
-            <div class="shop-info"><h4>Ферма Капибар</h4><p>+15 монет/сек автоматически</p></div>
-            <button class="buy-btn" onclick="buy('auto', 15, 1200)">1200 💰</button>
-        </div>
+        <div style="font-size: 0.8em; opacity: 0.6;">Авто-доход: +<span id="pps">0</span>/сек</div>
     </div>
-</div>
 
-<div id="leader-modal" class="modal">
-    <div class="close-btn" onclick="toggleModal('main')">✖</div>
-    <h2>🏆 ЛИДЕРЫ</h2>
-    <div id="leader-list">
-        <div class="leader-item"><span>🥇 High Command</span><span style="color:var(--main-color)">999,999</span></div>
-        <div class="leader-item"><span>🥈 CapyBro</span><span>75,200</span></div>
-        <div class="leader-item"><span>🥉 TechnoUser</span><span>15,400</span></div>
-        <div class="leader-item"><span>4. ClickMaster</span><span>8,100</span></div>
+    <div class="game-area">
+        <div id="capy-btn"></div>
     </div>
-</div>
 
-<div class="nav-bar">
-    <div class="nav-item active" id="nav-main" onclick="toggleModal('main')">🏠</div>
-    <div class="nav-item" id="nav-shop" onclick="toggleModal('shop-modal')">🛒</div>
-    <div class="nav-item" id="nav-leader" onclick="toggleModal('leader-modal')">🏆</div>
-</div>
+    <div id="p-shop" class="page">
+        <h2>🏪 Магазин (30 апгрейдов)</h2>
+        <div id="shop-items"></div>
+    </div>
+
+    <div id="p-ranks" class="page">
+        <h2>🏆 Топ Капибар</h2>
+        <div id="leaderboard">Загрузка...</div>
+    </div>
+
+    <div id="p-settings" class="page">
+        <h2>⚙️ Настройки</h2>
+        <button onclick="resetGame()" style="width:100%; padding:20px; background:var(--danger); border:none; color:white; border-radius:15px; font-weight:bold;">СБРОСИТЬ ВЕСЬ ПРОГРЕСС</button>
+        <p style="margin-top:20px; opacity:0.5; font-size:0.8em;">Capybara Evolution v2.0<br>Tecno Camon 20 Optimized</p>
+    </div>
+
+    <div class="nav">
+        <div class="nav-btn active" onclick="showPage('main', this)">🏠</div>
+        <div class="nav-btn" onclick="showPage('p-shop', this)">🛒</div>
+        <div class="nav-btn" onclick="showPage('p-ranks', this)">🏆</div>
+        <div class="nav-btn" onclick="showPage('p-settings', this)">⚙️</div>
+    </div>
 
 <script>
-    const webapp = window.Telegram.WebApp;
-    webapp.expand();
+    const web = window.Telegram.WebApp;
+    web.expand();
 
-    // Начальное состояние
-    let state = {
-        balance: 0,
-        clickPower: 1,
-        autoIncome: 0,
-        combo: 1,
-        comboLevel: 0
+    let data = {
+        bal: 0, click: 1, auto: 0, combo: 1, cFill: 0, last: Date.now(), upgrades: []
     };
 
-    // Загрузка сохраненных данных
-    const saved = localStorage.getItem('capy_pro_data_final');
-    if(saved) state = JSON.parse(saved);
-
-    function updateUI() {
-        document.getElementById('balance').innerText = Math.floor(state.balance);
-        document.getElementById('auto-val').innerText = state.autoIncome;
-        document.getElementById('combo-text').innerText = `COMBO X${state.combo}`;
-        document.getElementById('combo-fill').style.width = state.comboLevel + '%';
-        // Сохранение
-        localStorage.setItem('capy_pro_data_final', JSON.stringify(state));
+    // Генерируем 30 улучшений
+    const upgradeList = [];
+    for(let i=1; i<=30; i++) {
+        upgradeList.push({
+            id: i,
+            name: i <= 15 ? `Улучшение клика #${i}` : `Авто-ферма #${i-15}`,
+            type: i <= 15 ? 'click' : 'auto',
+            power: i * 2,
+            cost: Math.floor(50 * Math.pow(1.5, i))
+        });
     }
 
-    // ЛОГИКА ПЕРЕКЛЮЧЕНИЯ ОКОН
-    function toggleModal(id) {
-        // Закрываем всё
-        document.querySelectorAll('.modal').forEach(m => m.classList.remove('open'));
-        document.querySelectorAll('.nav-item').forEach(i => i.classList.remove('active'));
-
-        if (id === 'main') {
-            document.getElementById('nav-main').classList.add('active');
-        } else {
-            document.getElementById(id).classList.add('open');
-            if (id === 'shop-modal') document.getElementById('nav-shop').classList.add('active');
-            if (id === 'leader-modal') document.getElementById('nav-leader').classList.add('active');
-        }
-        if (webapp.HapticFeedback) webapp.HapticFeedback.impactOccurred('light');
-    }
-
-    // ОБРАБОТКА КЛИКА (МУЛЬТИТАЧ)
-    const clickBtn = document.getElementById('click-btn');
-    const handleAction = (e) => {
-        const touches = e.changedTouches ? e.changedTouches : [e];
-        
-        for(let t of touches) {
-            const reward = state.clickPower * state.combo;
-            state.balance += reward;
-            
-            // Вылетающие цифры
-            spawnText(t.clientX, t.clientY, `+${reward}`, state.combo > 1 ? 'var(--accent)' : 'white');
-            
-            // Зарядка комбо
-            state.comboLevel = Math.min(state.comboLevel + 7, 100);
-            if(state.comboLevel >= 100 && state.combo < 5) {
-                state.combo += 1;
-                state.comboLevel = 35;
+    function load() {
+        const s = localStorage.getItem('capy_v2');
+        if(s) {
+            data = JSON.parse(s);
+            const offTime = Math.floor((Date.now() - data.last) / 1000);
+            if(offTime > 5 && data.auto > 0) {
+                const earned = offTime * data.auto;
+                data.bal += earned;
+                web.showAlert(`Пока тебя не было, капибары принесли ${earned} 💰!`);
             }
         }
+        renderShop();
+        loop();
+    }
 
-        updateUI();
-        if (webapp.HapticFeedback) webapp.HapticFeedback.impactOccurred('medium');
-        
-        // Анимация кнопки
-        clickBtn.style.transform = 'scale(0.92)';
-        setTimeout(() => clickBtn.style.transform = 'scale(1)', 50);
+    function save() {
+        data.last = Date.now();
+        localStorage.setItem('capy_v2', JSON.stringify(data));
+        sync();
+    }
+
+    function sync() {
+        fetch('/api/sync', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({ user: web.initDataUnsafe.user, balance: data.bal })
+        }).then(r => r.json()).then(res => {
+            const list = document.getElementById('leaderboard');
+            list.innerHTML = res.leaderboard.map((u, i) => `
+                <div class="leader-row">
+                    <div class="avatar">${i+1}</div>
+                    <div style="flex:1"><b>${u.name}</b></div>
+                    <div style="color:var(--gold)">${Math.floor(u.balance)}</div>
+                </div>
+            `).join('');
+        });
+    }
+
+    const btn = document.getElementById('capy-btn');
+    const handle = (e) => {
+        const ts = e.changedTouches ? e.changedTouches : [e];
+        for(let t of ts) {
+            const p = data.click * data.combo;
+            data.bal += p;
+            spawn(t.clientX, t.clientY, `+${Math.floor(p)}`);
+            
+            // Заполнение комбо (сложнее на высоких уровнях)
+            const difficulty = data.combo * 2;
+            data.cFill = Math.min(data.cFill + (15 / difficulty), 100);
+            
+            if(data.cFill >= 100 && data.combo < 50) {
+                data.combo++;
+                data.cFill = 10;
+            }
+        }
+        btn.style.transform = 'scale(0.9)';
+        setTimeout(()=>btn.style.transform='scale(1)', 50);
+        update();
     };
 
-    clickBtn.addEventListener('touchstart', (e) => { e.preventDefault(); handleAction(e); }, {passive: false});
-    clickBtn.addEventListener('mousedown', handleAction);
+    btn.addEventListener('touchstart', (e)=>{e.preventDefault(); handle(e);}, {passive:false});
+    btn.addEventListener('mousedown', handle);
 
-    // Падение комбо со временем
-    setInterval(() => {
-        if(state.comboLevel > 0) {
-            state.comboLevel -= 2.5; 
-        } else if(state.combo > 1) {
-            state.combo -= 1;
-            state.comboLevel = 80;
-        }
-        updateUI();
-    }, 150);
+    function loop() {
+        if(data.cFill > 0) data.cFill -= 0.4;
+        else if(data.combo > 1) { data.combo--; data.cFill = 80; }
+        
+        if(data.auto > 0) data.bal += (data.auto / 10);
+        update();
+        setTimeout(loop, 100);
+    }
 
-    // Автоклик раз в секунду
-    setInterval(() => {
-        if(state.autoIncome > 0) {
-            state.balance += state.autoIncome;
-            updateUI();
-        }
-    }, 1000);
+    function update() {
+        document.getElementById('balance').innerText = Math.floor(data.bal);
+        document.getElementById('pps').innerText = data.auto;
+        document.getElementById('combo-text').innerText = `COMBO X${data.combo}`;
+        const f = document.getElementById('combo-fill');
+        f.style.width = data.cFill + '%';
+        
+        const max = document.getElementById('max-label');
+        if(data.combo >= 50) { f.classList.add('max'); max.style.display = 'block'; }
+        else { f.classList.remove('max'); max.style.display = 'none'; }
+    }
 
-    // Покупка в магазине
-    function buy(type, val, cost) {
-        if(state.balance >= cost) {
-            state.balance -= cost;
-            if(type === 'click') state.clickPower += val;
-            if(type === 'auto') state.autoIncome += val;
-            updateUI();
-            if (webapp.HapticFeedback) webapp.HapticFeedback.notificationOccurred('success');
+    function renderShop() {
+        const container = document.getElementById('shop-items');
+        container.innerHTML = upgradeList.map(u => `
+            <div class="card">
+                <div><b>${u.name}</b><br><small>+${u.power} к ${u.type === 'click' ? 'клику' : 'доходу'}</small></div>
+                <button class="buy-btn" onclick="buy(${u.id})">${u.cost} 💰</button>
+            </div>
+        `).join('');
+    }
+
+    function buy(id) {
+        const u = upgradeList.find(x => x.id === id);
+        if(data.bal >= u.cost) {
+            data.bal -= u.cost;
+            if(u.type === 'click') data.click += u.power;
+            else data.auto += u.power;
+            u.cost = Math.floor(u.cost * 1.6);
+            renderShop();
+            web.HapticFeedback.notificationOccurred('success');
+            save();
         } else {
-            webapp.showAlert('Недостаточно монет для покупки!');
+            web.showAlert('Мало денег!');
         }
     }
 
-    // Создание текста клика
-    function spawnText(x, y, txt, color) {
-        const el = document.createElement('div');
-        el.className = 'floating-text';
-        el.innerText = txt;
-        el.style.left = (x - 20) + 'px';
-        el.style.top = (y - 40) + 'px';
-        el.style.color = color;
-        document.body.appendChild(el);
-        setTimeout(() => el.remove(), 800);
+    function showPage(id, el) {
+        document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+        document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+        if(id !== 'main') document.getElementById(id).classList.add('active');
+        el.classList.add('active');
+        save();
     }
 
-    updateUI();
+    function spawn(x, y, t) {
+        const d = document.createElement('div');
+        d.className = 'floating';
+        d.style.left = x + 'px'; d.style.top = y + 'px';
+        d.innerText = t; d.style.color = data.combo > 10 ? 'var(--neon)' : 'white';
+        document.body.appendChild(d);
+        setTimeout(()=>d.remove(), 800);
+    }
+
+    function resetGame() {
+        if(confirm('РЕАЛЬНО СБРОСИТЬ ВСЁ?')) {
+            localStorage.clear();
+            location.reload();
+        }
+    }
+
+    load();
 </script>
 </body>
 </html>
