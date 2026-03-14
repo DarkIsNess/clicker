@@ -3,62 +3,82 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-    <title>CapybaraClicker</title>
+    <title>CapybaraClicker Deluxe</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
-        body { font-family: 'Arial', sans-serif; background: #1a1a1a; color: white; text-align: center; margin: 0; user-select: none; }
-        .container { display: flex; flex-direction: column; align-items: center; justify-content: space-around; height: 100vh; padding: 20px; box-sizing: border-box; }
-        
-        #balance-container { margin-top: 20px; }
-        #balance { font-size: 4em; font-weight: bold; color: #ffcc00; text-shadow: 0 0 20px rgba(255, 204, 0, 0.6); }
-        .stats-text { font-size: 1.2em; opacity: 0.7; letter-spacing: 2px; }
+        :root { --main-color: #ffcc00; }
+        body { 
+            font-family: 'Montserrat', sans-serif; 
+            background: radial-gradient(circle at center, #2c3e50 0%, #000 100%);
+            color: white; text-align: center; margin: 0; 
+            overflow: hidden; touch-action: none; /* Блокируем системные жесты для мультитача */
+        }
+        .container { 
+            display: flex; flex-direction: column; align-items: center; 
+            justify-content: space-between; height: 100vh; padding: 40px 20px; box-sizing: border-box; 
+        }
 
-        /* Кнопка-Капибара */
+        /* Декорации фона */
+        .bg-glow {
+            position: absolute; width: 300px; height: 300px;
+            background: var(--main-color); filter: blur(150px);
+            opacity: 0.15; z-index: -1; border-radius: 50%;
+        }
+
+        #balance-container { z-index: 10; }
+        #balance { font-size: 5em; font-weight: 900; color: var(--main-color); text-shadow: 0 0 30px rgba(255, 204, 0, 0.4); }
+        
+        /* Капибара с анимацией */
+        #click-area {
+            position: relative; width: 280px; height: 280px;
+            display: flex; align-items: center; justify-content: center;
+        }
         #click-btn { 
-            width: 250px; height: 250px; border-radius: 50%; border: none;
-            background: radial-gradient(circle, #ffcc00 0%, #cc9900 100%);
-            cursor: pointer; position: relative;
-            box-shadow: 0 10px 40px rgba(0,0,0,0.5);
-            transition: transform 0.05s;
-            display: flex; align-items: center; justify-content: center; font-size: 100px;
+            width: 240px; height: 240px; border-radius: 50%; border: 8px solid rgba(255,255,255,0.1);
+            background: url('https://i.postimg.cc/85m88X6p/capy.png') center/80% no-repeat, #3d2b1f; /* Ссылка на иконку капибары */
+            background-color: #5d4037;
+            box-shadow: 0 20px 50px rgba(0,0,0,0.8), inset 0 0 20px rgba(255,204,0,0.2);
+            font-size: 100px; cursor: pointer; transition: transform 0.05s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            -webkit-tap-highlight-color: transparent;
         }
-        #click-btn:active { transform: scale(0.95); }
-        #click-btn::after { content: '🦫'; } /* Эмодзи капибары (бобер похож) */
+        #click-btn::before { content: '🦫'; } /* Запасной вариант если картинка не грузится */
 
-        .controls { width: 100%; display: flex; flex-direction: column; gap: 10px; }
+        /* Анимация пульсации */
+        @keyframes pulse { 0% { transform: scale(1); } 50% { transform: scale(1.05); } 100% { transform: scale(1); } }
+        .pulse { animation: pulse 2s infinite ease-in-out; }
+
+        .progress-container { width: 100%; background: rgba(255,255,255,0.1); height: 10px; border-radius: 5px; margin: 20px 0; overflow: hidden; }
+        #progress-bar { width: 0%; height: 100%; background: var(--main-color); transition: width 0.3s; }
+
         .btn { 
-            padding: 15px; border-radius: 15px; border: none; font-weight: bold; font-size: 1em;
-            cursor: pointer; transition: 0.3s;
+            width: 100%; padding: 18px; border-radius: 20px; border: none; font-weight: 800; 
+            font-size: 1.1em; cursor: pointer; text-transform: uppercase; margin-bottom: 10px;
         }
-        .upgrade-btn { background: #4CAF50; color: white; box-shadow: 0 4px #2E7D32; }
-        .upgrade-btn:active { box-shadow: 0 0; transform: translateY(4px); }
+        .upgrade-btn { background: linear-gradient(135deg, #4CAF50, #2E7D32); color: white; }
         
-        .top-btn { background: #333; color: #aaa; }
-
-        /* Анимация вылетающих цифр */
         .floating-text {
-            position: absolute; color: #ffcc00; font-size: 2em; font-weight: bold;
-            pointer-events: none; animation: float 0.7s ease-out forwards;
+            position: absolute; color: white; font-size: 2.5em; font-weight: 900;
+            pointer-events: none; animation: float 0.8s ease-out forwards;
+            text-shadow: 0 0 10px var(--main-color); z-index: 100;
         }
-        @keyframes float {
-            0% { opacity: 1; transform: translateY(0); }
-            100% { opacity: 0; transform: translateY(-100px); }
-        }
+        @keyframes float { 0% { opacity: 1; transform: translateY(0) scale(1); } 100% { opacity: 0; transform: translateY(-150px) scale(1.5); } }
     </style>
 </head>
 <body>
+    <div class="bg-glow"></div>
     <div class="container">
         <div id="balance-container">
-            <div class="stats-text">БАЛАНС</div>
             <div id="balance">0</div>
+            <div class="progress-container"><div id="progress-bar"></div></div>
         </div>
 
-        <button id="click-btn"></button>
+        <div id="click-area">
+            <button id="click-btn" class="pulse"></button>
+        </div>
 
-        <div class="controls">
-            <div class="stats-text" id="per-click">СИЛА КЛИКА: 1</div>
-            <button class="btn upgrade-btn" id="upgrade-btn">УЛУЧШИТЬ (+1) — 10 💰</button>
-            <button class="btn top-btn">🏆 ТОП ИГРОКОВ (СКОРО)</button>
+        <div style="width: 100%;">
+            <div style="margin-bottom: 15px; font-weight: bold; color: var(--main-color);">УРОВЕНЬ: <span id="lvl">1</span></div>
+            <button class="btn upgrade-btn" id="upgrade-btn">Прокачать клик: 10 💰</button>
         </div>
     </div>
 
@@ -69,59 +89,77 @@
         let balance = 0;
         let clickPower = 1;
         let upgradeCost = 10;
+        let level = 1;
 
         const balanceEl = document.getElementById('balance');
-        const perClickEl = document.getElementById('per-click');
         const upgradeBtn = document.getElementById('upgrade-btn');
         const clickBtn = document.getElementById('click-btn');
+        const progressBar = document.getElementById('progress-bar');
+        const lvlEl = document.getElementById('lvl');
 
         function updateUI() {
             balanceEl.innerText = Math.floor(balance);
-            perClickEl.innerText = `СИЛА КЛИКА: ${clickPower}`;
-            upgradeBtn.innerText = `УЛУЧШИТЬ (+1) — ${Math.floor(upgradeCost)} 💰`;
+            upgradeBtn.innerText = `Прокачать клик: ${Math.floor(upgradeCost)} 💰`;
+            lvlEl.innerText = level;
+            let progress = (balance / upgradeCost) * 100;
+            progressBar.style.width = Math.min(progress, 100) + '%';
         }
 
-        // ГЛАВНЫЙ КЛИК
-        clickBtn.addEventListener('click', (e) => {
-            balance += clickPower;
-            updateUI();
+        // ПОДДЕРЖКА МУЛЬТИТАЧА
+        const handleInteraction = (e) => {
+            e.preventDefault();
+            // Получаем все точки касания (для мультитача) или один клик мышкой
+            const touches = e.changedTouches ? e.changedTouches : [e];
             
-            // Вибрация
-            if (webapp.HapticFeedback) webapp.HapticFeedback.impactOccurred('medium');
+            for (let i = 0; i < touches.length; i++) {
+                balance += clickPower;
+                createFloatingText(touches[i].clientX, touches[i].clientY);
+            }
 
-            // Создаем вылетающий текст +1
-            const x = e.clientX;
-            const y = e.clientY;
+            updateUI();
+            if (webapp.HapticFeedback) webapp.HapticFeedback.impactOccurred('light');
+            
+            // Визуальный эффект нажатия
+            clickBtn.style.transform = 'scale(0.9)';
+            setTimeout(() => clickBtn.style.transform = 'scale(1)', 50);
+        };
+
+        // Слушаем и касания, и клики
+        clickBtn.addEventListener('touchstart', handleInteraction, {passive: false});
+        clickBtn.addEventListener('mousedown', handleInteraction);
+
+        function createFloatingText(x, y) {
             const text = document.createElement('div');
             text.className = 'floating-text';
             text.innerText = `+${clickPower}`;
-            text.style.left = `${x - 20}px`;
-            text.style.top = `${y - 50}px`;
+            text.style.left = `${x - 30}px`;
+            text.style.top = `${y - 30}px`;
             document.body.appendChild(text);
-            setTimeout(() => text.remove(), 700);
-        });
+            setTimeout(() => text.remove(), 800);
+        }
 
-        // АПГРЕЙД
         upgradeBtn.addEventListener('click', () => {
             if (balance >= upgradeCost) {
                 balance -= upgradeCost;
                 clickPower += 1;
-                upgradeCost *= 2; // Удвоение цены
+                level += 1;
+                upgradeCost *= 2.5;
                 updateUI();
-                if (webapp.HapticFeedback) webapp.HapticFeedback.notificationOccurred('success');
+                webapp.HapticFeedback.notificationOccurred('success');
             } else {
-                webapp.showAlert('Недостаточно монет для Капибары!');
+                webapp.showAlert('Нужно больше золота, Капибара!');
             }
         });
 
-        // Отправка данных на сервер (Railway)
         setInterval(() => {
             fetch('/save', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ balance, clickPower })
-            }).catch(e => console.log('Ошибка сохранения'));
+                body: JSON.stringify({ balance, clickPower, level })
+            }).catch(() => {});
         }, 5000);
+
+        updateUI();
     </script>
 </body>
 </html>
