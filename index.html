@@ -3,147 +3,154 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-    <title>Capybara: Evolution</title>
+    <title>Capybara: Evolution Elite</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
-        :root { --gold: #ffcc00; --bg: #0a0a0a; --neon: #00e5ff; --danger: #ff4444; }
+        :root { --gold: #ffcc00; --bg: #0d0d0d; --neon: #00e5ff; --danger: #ff4444; }
         body { font-family: 'Segoe UI', sans-serif; background: var(--bg); color: white; margin: 0; overflow: hidden; touch-action: none; }
         
-        /* Эффекты фона */
-        .stars { position: absolute; width: 100%; height: 100%; background: radial-gradient(circle at 50% 50%, #1a1a1a 0%, #000 100%); z-index: -1; }
+        .container { display: flex; flex-direction: column; align-items: center; justify-content: space-between; height: 100vh; padding: 30px 20px; box-sizing: border-box; }
 
-        .header { padding: 15px; text-align: center; background: rgba(0,0,0,0.5); backdrop-filter: blur(10px); }
-        #balance { font-size: 3em; font-weight: 900; color: var(--gold); text-shadow: 0 0 20px rgba(255,204,0,0.3); }
+        /* Красивый баланс */
+        .header { text-align: center; width: 100%; }
+        #balance { font-size: 4.5em; font-weight: 900; color: var(--gold); text-shadow: 0 0 30px rgba(255,204,0,0.4); margin-bottom: 5px; }
         
-        /* Шкала Комбо */
-        .combo-box { width: 85%; margin: 10px auto; }
-        .combo-bar { width: 100%; height: 12px; background: #222; border-radius: 6px; overflow: hidden; border: 1px solid #333; }
-        #combo-fill { width: 0%; height: 100%; background: var(--neon); transition: width 0.1s linear; }
+        /* Тонкая шкала комбо */
+        .combo-wrapper { width: 70%; margin: 0 auto; }
+        #combo-text { font-size: 0.9em; font-weight: bold; color: var(--neon); letter-spacing: 2px; margin-bottom: 4px; display: block; }
+        .bar-bg { width: 100%; height: 6px; background: #222; border-radius: 10px; overflow: hidden; }
+        #combo-fill { width: 0%; height: 100%; background: var(--neon); transition: width 0.15s linear; box-shadow: 0 0 10px var(--neon); }
         #combo-fill.max { background: var(--danger); box-shadow: 0 0 15px var(--danger); }
-        #combo-info { display: flex; justify-content: space-between; font-weight: bold; font-size: 0.8em; margin-top: 5px; }
 
-        /* Игровая зона */
-        .game-area { height: 50vh; display: flex; flex-direction: column; align-items: center; justify-content: center; }
+        /* ГЛАВНАЯ КНОПКА (Стиль как на твоем первом скрине) */
+        .click-area { position: relative; display: flex; align-items: center; justify-content: center; }
         #capy-btn { 
-            width: 240px; height: 240px; border-radius: 50%; background: #3d2b1f; border: 8px solid #222;
-            font-size: 100px; display: flex; align-items: center; justify-content: center;
-            box-shadow: 0 0 50px rgba(0,0,0,0.5); transition: 0.05s; -webkit-tap-highlight-color: transparent;
+            width: 260px; height: 260px; border-radius: 50%; 
+            background: radial-gradient(circle, #3d2b1f 0%, #1a110a 100%);
+            border: 4px solid #222; position: relative;
+            display: flex; align-items: center; justify-content: center; font-size: 110px;
+            box-shadow: 0 0 60px rgba(0,0,0,0.6), inset 0 0 30px rgba(255,204,0,0.05);
+            transition: transform 0.05s cubic-bezier(0.1, 0.5, 0.1, 1);
+            -webkit-tap-highlight-color: transparent; outline: none;
         }
-        #capy-btn::after { content: '🦫'; }
+        #capy-btn::after { content: '🦫'; } 
+        #capy-btn:active { transform: scale(0.94); }
 
-        /* Навигация */
-        .nav { position: fixed; bottom: 0; width: 100%; display: flex; background: #111; padding: 10px 0; border-top: 1px solid #333; }
-        .nav-btn { flex: 1; font-size: 1.5em; opacity: 0.5; transition: 0.3s; cursor: pointer; }
-        .nav-btn.active { opacity: 1; transform: scale(1.2); color: var(--gold); }
+        /* Нижнее меню в стиле стеклянного морфизма */
+        .nav { width: 90%; background: rgba(255,255,255,0.05); backdrop-filter: blur(10px); border-radius: 25px; display: flex; padding: 10px; border: 1px solid rgba(255,255,255,0.1); }
+        .nav-btn { flex: 1; font-size: 1.6em; text-align: center; opacity: 0.4; transition: 0.3s; cursor: pointer; }
+        .nav-btn.active { opacity: 1; transform: scale(1.1); color: var(--gold); }
 
-        /* Модалки */
-        .page { position: fixed; top: 0; left: 0; width: 100%; height: 90vh; background: var(--bg); transform: translateY(100%); transition: 0.4s; padding: 20px; box-sizing: border-box; overflow-y: auto; z-index: 100; }
-        .page.active { transform: translateY(0); }
-        .card { background: #161616; padding: 15px; border-radius: 15px; margin-bottom: 10px; display: flex; justify-content: space-between; align-items: center; border: 1px solid #222; }
-        .buy-btn { background: var(--gold); border: none; padding: 10px 15px; border-radius: 10px; font-weight: bold; }
+        /* Модальные окна */
+        .modal { position: fixed; top: 0; left: 0; width: 100%; height: 100vh; background: rgba(0,0,0,0.9); z-index: 1000; display: none; flex-direction: column; padding: 30px 20px; box-sizing: border-box; }
+        .modal.open { display: flex; animation: slideUp 0.3s ease-out; }
+        @keyframes slideUp { from { transform: translateY(100%); } to { transform: translateY(0); } }
         
-        /* Лидеры */
-        .leader-row { display: flex; align-items: center; gap: 15px; padding: 12px; border-bottom: 1px solid #222; }
-        .avatar { width: 40px; height: 40px; background: #333; border-radius: 50%; display: flex; align-items: center; justify-content: center; }
+        .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; border-bottom: 1px solid #333; padding-bottom: 10px; }
+        .close-btn { font-size: 1.5em; color: var(--danger); font-weight: bold; }
 
-        .floating { position: absolute; pointer-events: none; animation: up 0.8s forwards; font-weight: 900; font-size: 2em; }
-        @keyframes up { 0% { opacity: 1; transform: translateY(0); } 100% { opacity: 0; transform: translateY(-150px); } }
+        .scroll-area { overflow-y: auto; flex-grow: 1; padding-bottom: 20px; }
+        .upgrade-card { background: #1a1a1a; padding: 15px; border-radius: 18px; margin-bottom: 12px; display: flex; justify-content: space-between; align-items: center; border: 1px solid #222; }
+        .buy-info h4 { margin: 0; color: var(--gold); font-size: 1em; }
+        .buy-info p { margin: 4px 0 0; font-size: 0.8em; opacity: 0.5; }
+        .buy-btn { background: var(--gold); border: none; padding: 10px 16px; border-radius: 12px; font-weight: 800; font-size: 0.9em; }
+
+        /* Вылетающие цифры */
+        .floating { position: absolute; pointer-events: none; animation: up 0.7s ease-out forwards; font-weight: 900; font-size: 2.2em; text-shadow: 0 0 10px rgba(0,0,0,0.5); }
+        @keyframes up { 0% { opacity: 1; transform: translateY(0) scale(1); } 100% { opacity: 0; transform: translateY(-140px) scale(1.4); } }
     </style>
 </head>
 <body>
-    <div class="stars"></div>
-    <div class="header">
-        <div id="balance">0</div>
-        <div class="combo-box">
-            <div id="combo-info"><span id="combo-text">COMBO X1</span> <span id="max-label" style="display:none; color:var(--danger)">MAX!</span></div>
-            <div class="combo-bar"><div id="combo-fill"></div></div>
+    <div class="container">
+        <div class="header">
+            <div id="balance">0</div>
+            <div class="combo-wrapper">
+                <span id="combo-text">COMBO X1</span>
+                <div class="bar-bg"><div id="combo-fill"></div></div>
+            </div>
+            <div style="margin-top: 8px; font-size: 0.8em; opacity: 0.4;">Прибыль: +<span id="pps">0</span>/сек</div>
         </div>
-        <div style="font-size: 0.8em; opacity: 0.6;">Авто-доход: +<span id="pps">0</span>/сек</div>
+
+        <div class="click-area">
+            <button id="capy-btn"></button>
+        </div>
+
+        <div class="nav">
+            <div class="nav-btn active" onclick="openModal('main', this)">🏠</div>
+            <div class="nav-btn" onclick="openModal('m-shop', this)">🛒</div>
+            <div class="nav-btn" onclick="openModal('m-ranks', this)">🏆</div>
+            <div class="nav-btn" onclick="openModal('m-sets', this)">⚙️</div>
+        </div>
     </div>
 
-    <div class="game-area">
-        <div id="capy-btn"></div>
+    <div id="m-shop" class="modal">
+        <div class="modal-header"><h2>МАГАЗИН</h2> <span class="close-btn" onclick="closeModals()">✖</span></div>
+        <div class="scroll-area" id="shop-list"></div>
     </div>
 
-    <div id="p-shop" class="page">
-        <h2>🏪 Магазин (30 апгрейдов)</h2>
-        <div id="shop-items"></div>
+    <div id="m-ranks" class="modal">
+        <div class="modal-header"><h2>ЛИДЕРЫ</h2> <span class="close-btn" onclick="closeModals()">✖</span></div>
+        <div class="scroll-area" id="leaderboard">Загрузка рейтинга...</div>
     </div>
 
-    <div id="p-ranks" class="page">
-        <h2>🏆 Топ Капибар</h2>
-        <div id="leaderboard">Загрузка...</div>
-    </div>
-
-    <div id="p-settings" class="page">
-        <h2>⚙️ Настройки</h2>
-        <button onclick="resetGame()" style="width:100%; padding:20px; background:var(--danger); border:none; color:white; border-radius:15px; font-weight:bold;">СБРОСИТЬ ВЕСЬ ПРОГРЕСС</button>
-        <p style="margin-top:20px; opacity:0.5; font-size:0.8em;">Capybara Evolution v2.0<br>Tecno Camon 20 Optimized</p>
-    </div>
-
-    <div class="nav">
-        <div class="nav-btn active" onclick="showPage('main', this)">🏠</div>
-        <div class="nav-btn" onclick="showPage('p-shop', this)">🛒</div>
-        <div class="nav-btn" onclick="showPage('p-ranks', this)">🏆</div>
-        <div class="nav-btn" onclick="showPage('p-settings', this)">⚙️</div>
+    <div id="m-sets" class="modal">
+        <div class="modal-header"><h2>НАСТРОЙКИ</h2> <span class="close-btn" onclick="closeModals()">✖</span></div>
+        <button onclick="resetGame()" style="width:100%; padding:20px; background:var(--danger); border:none; color:white; border-radius:15px; font-weight:bold; margin-top:20px;">СБРОСИТЬ ПРОГРЕСС</button>
+        <p style="text-align:center; opacity:0.3; margin-top:40px;">Tecno Camon 20 Edition</p>
     </div>
 
 <script>
     const web = window.Telegram.WebApp;
     web.expand();
 
-    let data = {
-        bal: 0, click: 1, auto: 0, combo: 1, cFill: 0, last: Date.now(), upgrades: []
-    };
+    let data = { bal: 0, click: 1, auto: 0, combo: 1, cFill: 0, last: Date.now() };
 
-    // Генерируем 30 улучшений
-    const upgradeList = [];
+    // Генерация 30 товаров
+    const upgrades = [];
     for(let i=1; i<=30; i++) {
-        upgradeList.push({
+        upgrades.push({
             id: i,
-            name: i <= 15 ? `Улучшение клика #${i}` : `Авто-ферма #${i-15}`,
+            name: i <= 15 ? `Клик-модуль ${i}` : `Авто-ферма ${i-15}`,
             type: i <= 15 ? 'click' : 'auto',
-            power: i * 2,
-            cost: Math.floor(50 * Math.pow(1.5, i))
+            power: i * 3,
+            cost: Math.floor(100 * Math.pow(1.6, i))
         });
     }
 
-    function load() {
-        const s = localStorage.getItem('capy_v2');
+    function init() {
+        const s = localStorage.getItem('capy_v3');
         if(s) {
             data = JSON.parse(s);
-            const offTime = Math.floor((Date.now() - data.last) / 1000);
-            if(offTime > 5 && data.auto > 0) {
-                const earned = offTime * data.auto;
-                data.bal += earned;
-                web.showAlert(`Пока тебя не было, капибары принесли ${earned} 💰!`);
+            const off = Math.floor((Date.now() - data.last) / 1000);
+            if(off > 10 && data.auto > 0) {
+                const e = off * data.auto;
+                data.bal += e;
+                web.showConfirm(`Ты отсутствовал ${off} сек. Капибары добыли ${e} 💰!`);
             }
         }
         renderShop();
-        loop();
+        gameLoop();
     }
 
-    function save() {
-        data.last = Date.now();
-        localStorage.setItem('capy_v2', JSON.stringify(data));
-        sync();
+    function gameLoop() {
+        if(data.cFill > 0) data.cFill -= 0.35;
+        else if(data.combo > 1) { data.combo--; data.cFill = 85; }
+        
+        if(data.auto > 0) data.bal += (data.auto / 10);
+        updateUI();
+        setTimeout(gameLoop, 100);
     }
 
-    function sync() {
-        fetch('/api/sync', {
-            method: 'POST',
-            headers: {'Content-Type': 'application/json'},
-            body: JSON.stringify({ user: web.initDataUnsafe.user, balance: data.bal })
-        }).then(r => r.json()).then(res => {
-            const list = document.getElementById('leaderboard');
-            list.innerHTML = res.leaderboard.map((u, i) => `
-                <div class="leader-row">
-                    <div class="avatar">${i+1}</div>
-                    <div style="flex:1"><b>${u.name}</b></div>
-                    <div style="color:var(--gold)">${Math.floor(u.balance)}</div>
-                </div>
-            `).join('');
-        });
+    function updateUI() {
+        document.getElementById('balance').innerText = Math.floor(data.bal);
+        document.getElementById('pps').innerText = data.auto;
+        document.getElementById('combo-text').innerText = data.combo >= 50 ? "MAX COMBO X50!" : `COMBO X${data.combo}`;
+        
+        const f = document.getElementById('combo-fill');
+        f.style.width = data.cFill + '%';
+        if(data.combo >= 50) f.classList.add('max'); else f.classList.remove('max');
+        
+        localStorage.setItem('capy_v3', JSON.stringify(data));
     }
 
     const btn = document.getElementById('capy-btn');
@@ -153,95 +160,81 @@
             const p = data.click * data.combo;
             data.bal += p;
             spawn(t.clientX, t.clientY, `+${Math.floor(p)}`);
-            
-            // Заполнение комбо (сложнее на высоких уровнях)
-            const difficulty = data.combo * 2;
-            data.cFill = Math.min(data.cFill + (15 / difficulty), 100);
-            
-            if(data.cFill >= 100 && data.combo < 50) {
-                data.combo++;
-                data.cFill = 10;
-            }
+            const diff = data.combo * 1.5;
+            data.cFill = Math.min(data.cFill + (18 / diff), 100);
+            if(data.cFill >= 100 && data.combo < 50) { data.combo++; data.cFill = 15; }
         }
-        btn.style.transform = 'scale(0.9)';
-        setTimeout(()=>btn.style.transform='scale(1)', 50);
-        update();
+        if(web.HapticFeedback) web.HapticFeedback.impactOccurred('light');
     };
 
     btn.addEventListener('touchstart', (e)=>{e.preventDefault(); handle(e);}, {passive:false});
     btn.addEventListener('mousedown', handle);
 
-    function loop() {
-        if(data.cFill > 0) data.cFill -= 0.4;
-        else if(data.combo > 1) { data.combo--; data.cFill = 80; }
-        
-        if(data.auto > 0) data.bal += (data.auto / 10);
-        update();
-        setTimeout(loop, 100);
-    }
-
-    function update() {
-        document.getElementById('balance').innerText = Math.floor(data.bal);
-        document.getElementById('pps').innerText = data.auto;
-        document.getElementById('combo-text').innerText = `COMBO X${data.combo}`;
-        const f = document.getElementById('combo-fill');
-        f.style.width = data.cFill + '%';
-        
-        const max = document.getElementById('max-label');
-        if(data.combo >= 50) { f.classList.add('max'); max.style.display = 'block'; }
-        else { f.classList.remove('max'); max.style.display = 'none'; }
-    }
-
     function renderShop() {
-        const container = document.getElementById('shop-items');
-        container.innerHTML = upgradeList.map(u => `
-            <div class="card">
-                <div><b>${u.name}</b><br><small>+${u.power} к ${u.type === 'click' ? 'клику' : 'доходу'}</small></div>
+        document.getElementById('shop-list').innerHTML = upgrades.map(u => `
+            <div class="upgrade-card">
+                <div class="buy-info"><h4>${u.name}</h4><p>+${u.power} к ${u.type === 'click' ? 'клику' : 'секунде'}</p></div>
                 <button class="buy-btn" onclick="buy(${u.id})">${u.cost} 💰</button>
             </div>
         `).join('');
     }
 
     function buy(id) {
-        const u = upgradeList.find(x => x.id === id);
+        const u = upgrades.find(x => x.id === id);
         if(data.bal >= u.cost) {
             data.bal -= u.cost;
-            if(u.type === 'click') data.click += u.power;
-            else data.auto += u.power;
-            u.cost = Math.floor(u.cost * 1.6);
+            if(u.type === 'click') data.click += u.power; else data.auto += u.power;
+            u.cost = Math.floor(u.cost * 1.7);
             renderShop();
             web.HapticFeedback.notificationOccurred('success');
-            save();
-        } else {
-            web.showAlert('Мало денег!');
-        }
+            updateUI();
+        } else { web.showAlert('Недостаточно средств!'); }
     }
 
-    function showPage(id, el) {
-        document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+    function openModal(id, el) {
+        if(id === 'main') { closeModals(); return; }
+        closeModals();
+        document.getElementById(id).classList.add('open');
         document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
-        if(id !== 'main') document.getElementById(id).classList.add('active');
         el.classList.add('active');
-        save();
+        if(id === 'm-ranks') fetchRanks();
+    }
+
+    function closeModals() {
+        document.querySelectorAll('.modal').forEach(m => m.classList.remove('open'));
+        document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+        document.querySelector('.nav-btn').classList.add('active');
     }
 
     function spawn(x, y, t) {
         const d = document.createElement('div');
         d.className = 'floating';
         d.style.left = x + 'px'; d.style.top = y + 'px';
-        d.innerText = t; d.style.color = data.combo > 10 ? 'var(--neon)' : 'white';
+        d.innerText = t; d.style.color = data.combo > 20 ? 'var(--neon)' : 'white';
         document.body.appendChild(d);
-        setTimeout(()=>d.remove(), 800);
+        setTimeout(()=>d.remove(), 700);
+    }
+
+    function fetchRanks() {
+        fetch('/api/sync', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({ user: web.initDataUnsafe.user, balance: data.bal })
+        }).then(r => r.json()).then(res => {
+            document.getElementById('leaderboard').innerHTML = res.leaderboard.map((u, i) => `
+                <div class="upgrade-card">
+                    <div style="font-weight:bold">${i+1}. ${u.name}</div>
+                    <div style="color:var(--gold)">${Math.floor(u.balance)}</div>
+                </div>
+            `).join('');
+        });
     }
 
     function resetGame() {
-        if(confirm('РЕАЛЬНО СБРОСИТЬ ВСЁ?')) {
-            localStorage.clear();
-            location.reload();
-        }
+        if(confirm('СБРОСИТЬ ВСЁ?')) { localStorage.clear(); location.reload(); }
     }
 
-    load();
+    init();
 </script>
 </body>
 </html>
