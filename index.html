@@ -3,56 +3,38 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-    <title>CapybaraClicker Deluxe</title>
+    <title>CapybaraClicker Save Edition</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
         :root { --main-color: #ffcc00; }
         body { 
-            font-family: 'Montserrat', sans-serif; 
+            font-family: 'Arial', sans-serif; 
             background: radial-gradient(circle at center, #2c3e50 0%, #000 100%);
             color: white; text-align: center; margin: 0; 
-            overflow: hidden; touch-action: none; /* Блокируем системные жесты для мультитача */
+            overflow: hidden; touch-action: none; 
         }
         .container { 
             display: flex; flex-direction: column; align-items: center; 
             justify-content: space-between; height: 100vh; padding: 40px 20px; box-sizing: border-box; 
         }
-
-        /* Декорации фона */
-        .bg-glow {
-            position: absolute; width: 300px; height: 300px;
-            background: var(--main-color); filter: blur(150px);
-            opacity: 0.15; z-index: -1; border-radius: 50%;
-        }
-
-        #balance-container { z-index: 10; }
         #balance { font-size: 5em; font-weight: 900; color: var(--main-color); text-shadow: 0 0 30px rgba(255, 204, 0, 0.4); }
         
-        /* Капибара с анимацией */
-        #click-area {
-            position: relative; width: 280px; height: 280px;
-            display: flex; align-items: center; justify-content: center;
-        }
         #click-btn { 
             width: 240px; height: 240px; border-radius: 50%; border: 8px solid rgba(255,255,255,0.1);
-            background: url('https://i.postimg.cc/85m88X6p/capy.png') center/80% no-repeat, #3d2b1f; /* Ссылка на иконку капибары */
-            background-color: #5d4037;
-            box-shadow: 0 20px 50px rgba(0,0,0,0.8), inset 0 0 20px rgba(255,204,0,0.2);
-            font-size: 100px; cursor: pointer; transition: transform 0.05s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            background: #5d4037;
+            box-shadow: 0 20px 50px rgba(0,0,0,0.8);
+            font-size: 100px; cursor: pointer; transition: transform 0.05s;
+            display: flex; align-items: center; justify-content: center;
             -webkit-tap-highlight-color: transparent;
         }
-        #click-btn::before { content: '🦫'; } /* Запасной вариант если картинка не грузится */
+        #click-btn::after { content: '🦫'; } /* Вернул капибару */
 
-        /* Анимация пульсации */
-        @keyframes pulse { 0% { transform: scale(1); } 50% { transform: scale(1.05); } 100% { transform: scale(1); } }
-        .pulse { animation: pulse 2s infinite ease-in-out; }
-
-        .progress-container { width: 100%; background: rgba(255,255,255,0.1); height: 10px; border-radius: 5px; margin: 20px 0; overflow: hidden; }
+        .progress-container { width: 100%; background: rgba(255,255,255,0.1); height: 10px; border-radius: 5px; margin: 20px 0; }
         #progress-bar { width: 0%; height: 100%; background: var(--main-color); transition: width 0.3s; }
 
         .btn { 
             width: 100%; padding: 18px; border-radius: 20px; border: none; font-weight: 800; 
-            font-size: 1.1em; cursor: pointer; text-transform: uppercase; margin-bottom: 10px;
+            font-size: 1.1em; cursor: pointer; text-transform: uppercase;
         }
         .upgrade-btn { background: linear-gradient(135deg, #4CAF50, #2E7D32); color: white; }
         
@@ -61,24 +43,21 @@
             pointer-events: none; animation: float 0.8s ease-out forwards;
             text-shadow: 0 0 10px var(--main-color); z-index: 100;
         }
-        @keyframes float { 0% { opacity: 1; transform: translateY(0) scale(1); } 100% { opacity: 0; transform: translateY(-150px) scale(1.5); } }
+        @keyframes float { 0% { opacity: 1; transform: translateY(0); } 100% { opacity: 0; transform: translateY(-150px); } }
     </style>
 </head>
 <body>
-    <div class="bg-glow"></div>
     <div class="container">
         <div id="balance-container">
             <div id="balance">0</div>
             <div class="progress-container"><div id="progress-bar"></div></div>
         </div>
 
-        <div id="click-area">
-            <button id="click-btn" class="pulse"></button>
-        </div>
+        <button id="click-btn"></button>
 
         <div style="width: 100%;">
             <div style="margin-bottom: 15px; font-weight: bold; color: var(--main-color);">УРОВЕНЬ: <span id="lvl">1</span></div>
-            <button class="btn upgrade-btn" id="upgrade-btn">Прокачать клик: 10 💰</button>
+            <button class="btn upgrade-btn" id="upgrade-btn">Прокачать клик: 10</button>
         </div>
     </div>
 
@@ -97,18 +76,35 @@
         const progressBar = document.getElementById('progress-bar');
         const lvlEl = document.getElementById('lvl');
 
+        // ЗАГРУЗКА ИЗ ПАМЯТИ ТЕЛЕФОНА
+        function loadProgress() {
+            const saved = localStorage.getItem('capyData');
+            if (saved) {
+                const data = JSON.parse(saved);
+                balance = data.balance || 0;
+                clickPower = data.clickPower || 1;
+                upgradeCost = data.upgradeCost || 10;
+                level = data.level || 1;
+                updateUI();
+            }
+        }
+
+        // СОХРАНЕНИЕ В ПАМЯТЬ ТЕЛЕФОНА
+        function saveProgress() {
+            const data = { balance, clickPower, upgradeCost, level };
+            localStorage.setItem('capyData', JSON.stringify(data));
+        }
+
         function updateUI() {
             balanceEl.innerText = Math.floor(balance);
-            upgradeBtn.innerText = `Прокачать клик: ${Math.floor(upgradeCost)} 💰`;
+            upgradeBtn.innerText = `УЛУЧШИТЬ КЛИК: ${Math.floor(upgradeCost)}`;
             lvlEl.innerText = level;
             let progress = (balance / upgradeCost) * 100;
             progressBar.style.width = Math.min(progress, 100) + '%';
         }
 
-        // ПОДДЕРЖКА МУЛЬТИТАЧА
         const handleInteraction = (e) => {
             e.preventDefault();
-            // Получаем все точки касания (для мультитача) или один клик мышкой
             const touches = e.changedTouches ? e.changedTouches : [e];
             
             for (let i = 0; i < touches.length; i++) {
@@ -117,14 +113,10 @@
             }
 
             updateUI();
+            saveProgress(); // Сохраняем каждый клик в локалку
             if (webapp.HapticFeedback) webapp.HapticFeedback.impactOccurred('light');
-            
-            // Визуальный эффект нажатия
-            clickBtn.style.transform = 'scale(0.9)';
-            setTimeout(() => clickBtn.style.transform = 'scale(1)', 50);
         };
 
-        // Слушаем и касания, и клики
         clickBtn.addEventListener('touchstart', handleInteraction, {passive: false});
         clickBtn.addEventListener('mousedown', handleInteraction);
 
@@ -143,23 +135,17 @@
                 balance -= upgradeCost;
                 clickPower += 1;
                 level += 1;
-                upgradeCost *= 2.5;
+                upgradeCost *= 2;
                 updateUI();
+                saveProgress();
                 webapp.HapticFeedback.notificationOccurred('success');
             } else {
-                webapp.showAlert('Нужно больше золота, Капибара!');
+                webapp.showAlert('Мало монет!');
             }
         });
 
-        setInterval(() => {
-            fetch('/save', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ balance, clickPower, level })
-            }).catch(() => {});
-        }, 5000);
-
-        updateUI();
+        // Старт
+        loadProgress();
     </script>
 </body>
 </html>
